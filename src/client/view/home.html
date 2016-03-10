@@ -1,0 +1,31 @@
+<header class='main-header'>
+	<h1>tellem</h1>
+</header>
+
+<section class='main'>
+	<section class='subscribed side-list'>
+		<header class='subscribed-header'>Subscribed Channels</header>
+		<ul class='channel-list'>
+			<li class='subscribed-item side-list-item' ng-repeat='channelId in user.channels'>
+                <header class='side-list-item-header'>{{channels[channelId].name}}</header><div class='side-list-item-buttons'>
+                    <input type='button' value='Info' ng-click='info(channelId)'>
+                    <input type='button' value='Unsubscribe' ng-click='unsubscribe(channelId)'>
+                </div>
+			</li>
+		</ul>
+	</section>
+
+    <section class='centre'></section>
+
+    <section class='available side-list'>
+        <header class='available-header'>Available Channels</header>
+        <ul class='channel-list'>
+            <li  ng-repeat='channel in channels' ng-if='user.channels.indexOf(channel.id) === -1'>
+                <header class='side-list-item-header'>{{channel.name}}</header><div class='side-list-item-buttons'>
+                    <input type='button' value='Info' ng-click='info(channel.id)'>
+                    <input type='button' value='Subscribe' ng-click='subscribe(channel.id)'>
+                </div>
+            </li>
+        </ul>
+    </section>
+</section>

@@ -1,0 +1,100 @@
+@import (inline) "normalize.css";
+
+@application-font-family: Arial, sans-serif;
+
+// Colours used throughout the app
+@base-colour: #425879;
+@side-list-colour: #2D2D2D;
+
+// Font colours. Fonts are based on their background, so @fc-base-colour is the
+// font colour to use against @base-colour.
+@fc-base-colour: #FFF;
+@fc-side-list-colour: #FFF;
+
+// Widths
+@left-side-bar-width: 400px;
+
+@outer-padding: 10px;
+
+@import (inline) "mixins.less";
+
+body {
+	// Use a percentage font-size here so all fonts are correctly zoomed.
+	// http://kyleschaeffer.com/development/css-font-size-em-vs-px-vs-pt-vs/
+	font-size: 80%;
+}
+
+h1 {
+	margin: 0;
+	font-family: @application-font-family;
+	font-size: 2em;
+	color: @fc-base-colour;
+	text-shadow: 1px 1px 1px #000;
+	padding-left: @outer-padding;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+header.main-header {
+	background-color: @base-colour;
+}
+
+section.main {
+	display: table;
+	width: 100%;
+
+	> section {
+		display: table-cell;
+	}
+}
+
+section.side-list {
+	background-color: @side-list-colour;
+	color: @fc-side-list-colour;
+
+	> header {
+		font-size: 1.4em;
+		text-align: center;
+	}
+
+	> ul {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+
+		> li {
+			display: block;
+		}
+	}
+}
+
+section.subscribed {
+	// variable width based on screen size?
+	width: @left-side-bar-width;
+}
+
+li.side-list-item {
+	> div, > header {
+		display: inline-block;
+	}
+}
+
+@side-list-item-sub-width: 130px;
+
+div.side-list-item-buttons {
+	width: @side-list-item-sub-width;
+
+	> input {
+		color: black;
+	}
+}
+
+header.side-list-item-header {
+	width: @left-side-bar-width - @side-list-item-sub-width;
+}
+
+section.available {
+	width: 200px;
+}
+
+
