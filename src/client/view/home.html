@@ -6,24 +6,30 @@
 	<section class='subscribed side-list'>
 		<header class='subscribed-header'>Subscribed Channels</header>
 		<ul class='channel-list'>
-			<li class='subscribed-item side-list-item' ng-repeat='channelId in user.channels'>
-                <header class='side-list-item-header'>{{channels[channelId].name}}</header><div class='side-list-item-buttons'>
-                    <input type='button' value='Info' ng-click='info(channelId)'>
-                    <input type='button' value='Unsubscribe' ng-click='unsubscribe(channelId)'>
+			<li class='subscribed-item side-list-item' ng-repeat='channel in subscribedChannels'>
+                <header class='side-list-item-header'>{{channel.name}}</header><div class='side-list-item-buttons'>
+                    <input type='button' value='Info' ng-click='info(channel._id)'>
+                    <input type='button' value='Unsubscribe' ng-click='unsubscribe(channel._id)'>
                 </div>
 			</li>
 		</ul>
 	</section>
 
-    <section class='centre'></section>
+    <section class='centre'>
+        <label for='channel'>Channel</label>
+        <input name='channel' type='text' ng-model='notificationChannel'>
+        <label for='message'>Message</label>
+        <input name='message' type='text' ng-model='notificationMessage'>
+        <input value='Send' name='submit' type='button' ng-click='notify()'>
+    </section>
 
     <section class='available side-list'>
         <header class='available-header'>Available Channels</header>
         <ul class='channel-list'>
-            <li  ng-repeat='channel in channels' ng-if='user.channels.indexOf(channel.id) === -1'>
+            <li  ng-repeat='channel in availableChannels'>
                 <header class='side-list-item-header'>{{channel.name}}</header><div class='side-list-item-buttons'>
-                    <input type='button' value='Info' ng-click='info(channel.id)'>
-                    <input type='button' value='Subscribe' ng-click='subscribe(channel.id)'>
+                    <input type='button' value='Info' ng-click='info(channel._id)'>
+                    <input type='button' value='Subscribe' ng-click='subscribe(channel._id)'>
                 </div>
             </li>
         </ul>

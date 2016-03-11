@@ -1,9 +1,20 @@
-var TellemApp = require('./TellemApp');
+'use strict';
 
-window.TellemBootstrap = function() {};
+var User = require('../../model/user');
+var Channel = require('../../model/channel');
 
-window.TellemBootstrap.prototype.init = function() {
-	var socket = io();
-	var app = new TellemApp(socket);
-	app.init();
-};
+angular.module('tellemApp.bootstrap', [])
+
+	.run(['$window', '$rootScope', function($window, $rootScope) {
+
+		var bootstrap = $window._tellem.bootstrap;
+
+		// window._tellem.bootstrap will contain any bootstrapped data necessary
+		// to run the application. Extract it here.
+		$rootScope.subscribedChannelIds = bootstrap.subscribedChannelIds;
+		$rootScope.channels = bootstrap.channels.map(function(channel) {
+			return new Channel(channel);
+		});
+
+		$rootScope.user = new User(bootstrap.user);
+	}]);

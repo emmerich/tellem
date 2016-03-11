@@ -16,14 +16,13 @@ NotificationEmitter.prototype.emit = function(notificationEvent) {
 	// them the event.
 	this.connections.forEach(function(connection) {
 		if(this._userIsSubscribed(connection.user, notificationEvent.channel)) {
-			console.log('emit');
 			connection.socket.emit('notification', notificationEvent);
 		}
 	}, this);
 };
 
 NotificationEmitter.prototype._userIsSubscribed = function(user, channel) {
-	return user.channels.indexOf(channel.id) > -1;
+	return user.subscribedChannels.indexOf(channel._id) > -1;
 };
 
 

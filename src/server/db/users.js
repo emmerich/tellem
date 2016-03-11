@@ -1,8 +1,9 @@
 var q = require('q');
+var User = require('../../model/user');
 
 var users = [
-	{ _id: 0, username: 'steven', password: 'password', channels: [0, 1] },
-	{ _id: 1, username: 'michael', password: 'password', channels: [1, 2] }
+	new User({ _id: 0, username: 'steven', password: 'password', subscribedChannels: [0, 1] }),
+	new User({ _id: 1, username: 'michael', password: 'password', subscribedChannels: [1, 2] })
 ];
 
 var _findById = function(id) {

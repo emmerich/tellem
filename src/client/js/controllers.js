@@ -1,37 +1,52 @@
 'use strict';
 
+var NotificationEvent = require('../../model/NotificationEvent');
+var Notification = require('../../model/Notification');
 
-angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session'])
+angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.notifier'])
 
-	.controller('TellemCtrl', ['$rootScope', '$window', function ($rootScope, $window) {
-		var bootstrap = $window._tellem.bootstrap;
+	.controller('HomeCtrl', ['$rootScope', '$scope', 'users', 'channels', 'notifier', 'currentUser',
+		function($rootScope, $scope, users, channels, notifier, currentUser) {
+			var user = currentUser();
 
-		// window._tellem.bootstrap will contain any bootstrapped data necessary
-		// to run the application. Extract it here.
-		$rootScope.subscribedChannelIds = bootstrap.subscribedChannelIds;
-		$rootScope.channels = bootstrap.channels;
-		$rootScope.user = bootstrap.user;
-	}])
+			$scope.$watch('user.subscribedChannels', function() {
+				$scope.subscribedChannels = users.getSubscribedChannels(user);
+				$scope.availableChannels = channels.get().filter(function(channel) {
+					return !users.isSubscribedToChannel(user, channel);
+				});
+			});
 
-	.controller('HomeCtrl', ['$scope', 'users', 'currentUser',
-		function($scope, users, currentUser) {
+			$scope.notificationChannel = 'dev_updates';
+			$scope.notificationMessage = 'test';
+
+			// $scope.notificationToSend = {
+			// 	message: '',
+			// 	channel: ''
+			// };
+
 			$scope.subscribe = function(channelId) {
-				var user = currentUser();
-				var updatedChannels = user.channels.slice();
-				updatedChannels.push(channelId);
-				users.update(user, { channels: updatedChannels });
+				users.subscribeToChannel(currentUser(), channelId);
 			};
 
 			$scope.unsubscribe = function(channelId) {
-				// debugger;
-				var user = currentUser();
-				var updatedChannels = user.channels.slice();
-				updatedChannels.splice(user.channels.indexOf(channelId), 1);
-				users.update(user, { channels: updatedChannels });
+				users.unsubscribeFromChannel(currentUser(), channelId);
 			};
 
 			$scope.info = function(channelId) {
 				console.log('show info', channelId);
+			};
+
+			$scope.notify = function() {
+				notifier.notify(new NotificationEvent({
+					notification: new Notification({
+						title: 'Test',
+						message: $scope.notificationMessage,
+						icon: 'img/icon.png',
+						language: 'en-GB'
+					}),
+
+					channel: channels.getByName($scope.notificationChannel)
+				}));
 			};
 		}
 	]);

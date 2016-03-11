@@ -14,10 +14,13 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 					var thisUser = currentUser();
 
 					if(update.id === thisUser._id) {
+						// thisUser.subscribedChannels.push(update.data.subscribedChannels[0]);
 						// update was for the current user
 						Object.keys(update.data).forEach(function(key) {
 							thisUser[key] = update.data[key];
 						});
+
+						console.log('user after update', thisUser);
 					}
 
 					// as we are outside of any $scope, we must force an update on the root

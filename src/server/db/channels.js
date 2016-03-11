@@ -2,17 +2,20 @@ var q = require('q');
 var Channel = require('../../model/Channel');
 
 var channels = [new Channel({
-	id: 0,
+	_id: 0,
 	name: 'dev_updates',
-	description: 'Updates on the development servers.'
+	description: 'Updates on the development servers.',
+	senders: [0]
 }),new Channel({
-	id: 1,
+	_id: 1,
 	name: 'new_clients',
-	description: 'New clients.'
+	description: 'New clients.',
+	senders: [0]
 }),new Channel({
-	id: 2,
+	_id: 2,
 	name: 'prod_bugs',
-	description: 'Bugs that arise in the production systems.'
+	description: 'Bugs that arise in the production systems.',
+	senders: []
 })];
 
 module.exports = {

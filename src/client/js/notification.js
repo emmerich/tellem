@@ -1,16 +1,15 @@
 angular.module('tellemApp.notification', ['tellemApp.socket'])
 
-	.run(['socket', 'notifier', function(socket, notifier) {
-		console.log('run');
+	.run(['socket', 'clientNotifier', function(socket, clientNotifier) {
 		// Listen for any notification events
 		socket.on('notification', function(notification) {
 			console.log('notification', notification);
-			notifier.notify(notification);
+			clientNotifier.notify(notification);
 		});
 	}])
 
 
-	.factory('notifier', ['ChromeNotifier', function(chromeNotifier) {
+	.factory('clientNotifier', ['ChromeNotifier', function(chromeNotifier) {
 		return chromeNotifier;
 	}])
 

@@ -59,6 +59,15 @@ io.on('connection', function(socket) {
 		notificationEmitter.remove(connection);
 	});
 
+	socket.on('notify', function(data) {
+		var user = socket.request.user;
+		var channel = data.notificationEvent.channel;
+		console.log('Received notification', data.notificationEvent);
+		if(channel.senders.indexOf(user._id) > -1) {
+			notificationEmitter.emit(data.notificationEvent);
+		}
+	});
+
 	socket.on('UPDATE', function(data) {
 		// collection, id, update
 		console.log(data);
@@ -81,4 +90,4 @@ http.listen(3000, function() {});
 
 
 
-require('./test')(notificationEmitter);
+// require('./test')(notificationEmitter);

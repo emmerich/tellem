@@ -3,16 +3,16 @@ html(lang='en', ng-app='tellemApp')
   head
     title='tellem'
     link(rel='stylesheet/less', type='text/css', href='/less/styles.less')
-  body(ng-controller='TellemCtrl')
+  body
     section(class='container', ng-view)
 
     script(type='text/javascript', src='/js/lib/less.js')
-    script(type='text/javascript', src='/bower_components/angular/angular.js')
-    script(type='text/javascript', src='/bower_components/angular-route/angular-route.js')
+    //- script(type='text/javascript', src='/bower_components/angular/angular.js')
+    //- script(type='text/javascript', src='/bower_components/angular-route/angular-route.js')
 
     // prod
-    // script(type='text/javascript', src='//cdn.socket.io/socket.io-1.4.5.js')
-    script(type='text/javascript', src='/bower_components/socket.io-client/socket.io.js')
+    //- // script(type='text/javascript', src='//cdn.socket.io/socket.io-1.4.5.js')
+    //- script(type='text/javascript', src='/bower_components/socket.io-client/socket.io.js')
 
     script(type='text/javascript').
         window._tellem = {};
@@ -20,10 +20,12 @@ html(lang='en', ng-app='tellemApp')
     each data, varName in bootstrap
         script(type='text/javascript')!='window._tellem.bootstrap.' + varName + ' = ' + JSON.stringify(data)
 
-    script(type='text/javascript', src='/js/app.js')
-    script(type='text/javascript', src='/js/socket.js')
-    script(type='text/javascript', src='/js/sync.js')
-    script(type='text/javascript', src='/js/notification.js')
-    script(type='text/javascript', src='/js/db.js')
-    script(type='text/javascript', src='/js/session.js')
-    script(type='text/javascript', src='/js/controllers.js')
+    script(type='text/javascript', src='/js/tellem.js')
+    //- script(type='text/javascript', src='/js/app.js')
+    //- script(type='text/javascript', src='/js/socket.js')
+    //- script(type='text/javascript', src='/js/sync.js')
+    //- script(type='text/javascript', src='/js/notification.js')
+    //- script(type='text/javascript', src='/js/db.js')
+    //- script(type='text/javascript', src='/js/session.js')
+    //- script(type='text/javascript', src='/js/notifier.js')
+    //- script(type='text/javascript', src='/js/controllers.js')
