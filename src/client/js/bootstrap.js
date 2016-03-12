@@ -11,7 +11,6 @@ angular.module('tellemApp.bootstrap', [])
 
 		// window._tellem.bootstrap will contain any bootstrapped data necessary
 		// to run the application. Extract it here.
-		$rootScope.subscribedChannelIds = bootstrap.subscribedChannelIds;
 		$rootScope.channels = bootstrap.channels.map(function(channel) {
 			return new Channel(channel);
 		});
