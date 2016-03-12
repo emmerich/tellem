@@ -1,5 +1,6 @@
 var q = require('q');
-var User = require('../../model/user');
+var User = require('../../common/model/user');
+var ModelUpdate = require('../../common/model/ModelUpdate');
 
 var users = [
 	new User({ _id: 0, username: 'steven', password: 'password', subscribedChannels: [0, 1] }),
@@ -33,7 +34,15 @@ module.exports = {
 				Object.keys(update).forEach(function(key) {
 					user[key] = update[key];
 				});
+
+				return new ModelUpdate({
+					id: id,
+					update: update,
+					collection: 'users'
+				});
 			}
+
+			return null;
 		});
 	}
 };

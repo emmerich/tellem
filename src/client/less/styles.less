@@ -12,16 +12,28 @@
 @fc-side-list-colour: #FFF;
 
 // Widths
-@left-side-bar-width: 400px;
+@header-height: 35px;
+@left-side-bar-width: 250px;
+@side-bar-horizontal-padding: 10px;
 
 @outer-padding: 10px;
 
-@import (inline) "mixins.less";
+@import (less) "mixins.less";
+
+// Application-wide and root-level layout styles
 
 body {
 	// Use a percentage font-size here so all fonts are correctly zoomed.
 	// http://kyleschaeffer.com/development/css-font-size-em-vs-px-vs-pt-vs/
 	font-size: 80%;
+	height: 100%;
+	width: 100%;
+	position: relative;
+}
+
+html {
+	height: 100%;
+	width: 100%;
 }
 
 h1 {
@@ -37,64 +49,36 @@ h1 {
 
 header.main-header {
 	background-color: @base-colour;
+	height: @header-height;
 }
 
 section.main {
-	display: table;
+	position: absolute;
+	top: @header-height;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+section.main-container {
 	width: 100%;
+	min-height: 100%;
+	overflow: hidden;
 
 	> section {
-		display: table-cell;
+		// One True Layout
+		// https://css-tricks.com/fluid-width-equal-height-columns/
+	    margin-bottom: -99999px;
+	    padding-bottom: 99999px;
 	}
 }
 
-section.side-list {
-	background-color: @side-list-colour;
-	color: @fc-side-list-colour;
-
-	> header {
-		font-size: 1.4em;
-		text-align: center;
-	}
-
-	> ul {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-
-		> li {
-			display: block;
-		}
-	}
+section.centre-pane {
+	margin-left: @left-side-bar-width + (2* @side-bar-horizontal-padding);
 }
 
-section.subscribed {
-	// variable width based on screen size?
-	width: @left-side-bar-width;
-}
 
-li.side-list-item {
-	> div, > header {
-		display: inline-block;
-	}
-}
-
-@side-list-item-sub-width: 130px;
-
-div.side-list-item-buttons {
-	width: @side-list-item-sub-width;
-
-	> input {
-		color: black;
-	}
-}
-
-header.side-list-item-header {
-	width: @left-side-bar-width - @side-list-item-sub-width;
-}
-
-section.available {
-	width: 200px;
-}
+@import (less) "sidebar.less";
+@import (less) "sender.less";
 
 

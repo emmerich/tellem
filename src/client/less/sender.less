@@ -1,0 +1,67 @@
+@send-container-width: 800px;
+@send-form-width: @send-container-width / 3; // 33%
+@previously-send-width: @send-form-width * 2; // 66%
+@padding-between-form-and-previous: 30px;
+
+section.send-container {
+	padding: 0 10px;
+	width: @send-container-width;
+}
+
+section.create-container {
+	padding-top: 30px;
+
+	> section {
+		// width: @send-container-width / 2;
+		display: inline-block;
+		vertical-align: top;
+		box-sizing: border-box;
+	}
+}
+
+section.send-form {
+	width: @send-form-width;
+	padding-right: @padding-between-form-and-previous / 2;
+}
+
+section.previously-sent {
+	width: @previously-send-width;
+	padding-left: @padding-between-form-and-previous / 2;
+
+	> section {
+		display: inline-block;
+		width: 50%;
+	}
+
+	h4 {
+		margin-top: 0;
+		margin-bottom: 1.2em;
+	}
+}
+
+h3.previously-send-header {
+	margin-bottom: 0;
+}
+
+label.send-label {
+	font-size: 0.8em;
+}
+
+.send-input {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+textarea.message-input {
+	height: 4em;
+}
+
+.send-buttons {
+	overflow: hidden;
+
+	> input {
+		float: right;
+		margin-left: 3px;
+	}
+}

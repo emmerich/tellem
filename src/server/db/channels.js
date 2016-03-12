@@ -1,5 +1,5 @@
 var q = require('q');
-var Channel = require('../../model/Channel');
+var Channel = require('../../common/model/Channel');
 
 var channels = [new Channel({
 	_id: 0,
@@ -22,6 +22,14 @@ module.exports = {
 	get: function() {
 		return q.fcall(function() {
 			return channels;
+		});
+	},
+
+	getById: function(id) {
+		return q.fcall(function() {
+			return channels.filter(function(channel) {
+				return channel._id === id;
+			})[0];
 		});
 	}
 }

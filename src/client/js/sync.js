@@ -1,26 +1,27 @@
 'use strict';
 
+var ModelUpdateRequest = require('../../common/model/ModelUpdateRequest');
+var event = require('../../common/event');
+
 angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 
 	// Code for listening constantly for updates to models on the server
 	.run(['$rootScope', 'socket', 'acks', 'currentUser', function($rootScope, socket, acks, currentUser) {
-		socket.on('UPDATE', function(update) {
-			console.log('update received', update);
+		socket.on(event.MODEL_UPDATE, function(modelUpdate) {
+			console.log('update received', modelUpdate);
 
 			// process the update
 			// how to decide where to process the update. depends on the collection
-			switch(update.collection) {
+			switch(modelUpdate.collection) {
 				case 'users':
 					var thisUser = currentUser();
 
-					if(update.id === thisUser._id) {
+					if(modelUpdate.id === thisUser._id) {
 						// thisUser.subscribedChannels.push(update.data.subscribedChannels[0]);
 						// update was for the current user
-						Object.keys(update.data).forEach(function(key) {
-							thisUser[key] = update.data[key];
+						Object.keys(modelUpdate.update).forEach(function(key) {
+							thisUser[key] = modelUpdate.update[key];
 						});
-
-						console.log('user after update', thisUser);
 					}
 
 					// as we are outside of any $scope, we must force an update on the root
@@ -89,24 +90,16 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 		}
 	}])
 
-	.factory('sync', ['socket', '$q', 'acks', function(socket, $q, acks) {
+	.factory('sync', ['socket', function(socket) {
 		return {
 			update: function(collection, id, update) {
-				socket.emit('UPDATE', {
-					collection: collection,
+				var request = new ModelUpdateRequest({
 					id: id,
+					collection: collection,
 					update: update
 				});
 
-				// return $q(function(resolve, reject) {
-				// 	acks.add(collection, id, update, resolve);
-
-				// 	socket.emit('UPDATE', {
-				// 		collection: collection,
-				// 		id: id,
-				// 		update: update
-				// 	});
-				// });
+				socket.emit(event.MODEL_UPDATE_REQUEST, request);
 			}
 		}
 	}]);

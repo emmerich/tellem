@@ -1,0 +1,42 @@
+<section class='send-container'>
+	<header class='centre-header'>
+		<h2>Send</h2>
+	</header>
+
+	<section class='channel-selection'>
+		<h3>Select target channel</h3>
+		<div class='send-channel'>
+			<input class='send-input' name='channel' type='text' ng-model='channel'>
+		</div>
+	</section>
+	
+
+	<section class='create-container'>
+		<section class='send-form'>
+			<header>
+				<h3>Create a new bulletin..</h3>
+			</header>
+
+			<div class='send-message'>
+				<label class='send-label' for='message'>Message</label>
+				<textarea rows='1' class='send-input message-input' name='message' ng-model='message'></textarea>
+			</div>
+
+			<div class='send-buttons'>	
+				<input value='Send' name='submit' type='button' ng-click='send()'>
+			</div>
+		</section><section class='previously-sent'>
+			<header>
+				<h3 class='previously-send-header'>.. or use one previously sent ..</h3>
+			</header>
+
+			<section class='user-previously-sent'>
+				<h4>.. by you</h4>
+				<div class='notification-list'></div>
+			</section><section class='channel-previously-sent'>
+				<h4>.. on this channel</h4>
+				<div class='notification-list'></div>
+			</section>
+		</section>
+	</section>
+</section>

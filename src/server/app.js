@@ -6,10 +6,11 @@ var passport = require('passport');
 var session = require('express-session');
 var passportSocketIo = require('passport.socketio');
 var MongoStore = require('connect-mongo')(session);
-var Notification = require('../model/Notification');
-var NotificationEvent = require('../model/NotificationEvent');
-var NotificationEmitter = require('./net/NotificationEmitter');
-var InboundConnection = require('./net/InboundConnection');
+
+var BulletinEmitter = require('./emitters/BulletinEmitter');
+var ModelUpdateEmitter = require('./emitters/ModelUpdateEmitter');
+var Connection = require('./connection/Connection');
+var ConnectionManager = require('./connection/ConnectionManager');
 
 var SECRET = 'moon toes';
 
@@ -30,8 +31,6 @@ app.use(express.static(__dirname + '/static'));
 //dev only
 app.use(express.static(__dirname + '/../client'));
 
-
-// todo: use a non-memory session store
 app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, store: sessionStore }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -44,50 +43,26 @@ io.use(passportSocketIo.authorize({
   store:       sessionStore
 }));
 
-var notificationEmitter = new NotificationEmitter();
+var bulletinEmitter = new BulletinEmitter();
+var modelUpdateEmitter = new ModelUpdateEmitter();
+var connectionManager = new ConnectionManager({
+	bulletinEmitter: bulletinEmitter,
+	modelUpdateEmitter: modelUpdateEmitter
+});
 
 io.on('connection', function(socket) {
-	// When a new connection is made, create a new tuple and add it to the notification emitter.
-	var connection = new InboundConnection({
+	// Delegate all connection logic to the ConnectionManager.
+	var connection = new Connection({
 		socket: socket,
 		user: socket.request.user
 	});
 
-	notificationEmitter.add(connection);
-
 	socket.on('disconnect', function() {
-		notificationEmitter.remove(connection);
+		connectionManager.unmanage(connection);
 	});
 
-	socket.on('notify', function(data) {
-		var user = socket.request.user;
-		var channel = data.notificationEvent.channel;
-		console.log('Received notification', data.notificationEvent);
-		if(channel.senders.indexOf(user._id) > -1) {
-			notificationEmitter.emit(data.notificationEvent);
-		}
-	});
-
-	socket.on('UPDATE', function(data) {
-		// collection, id, update
-		console.log(data);
-
-		// update the db
-		if(data.collection === 'users') {
-			require('./db/users').update(data.id, data.update).then(function() {
-				io.emit('UPDATE', {
-					collection: data.collection,
-					id: data.id,
-					data: data.update
-				});	
-			});
-		}
-	});
+	connectionManager.manage(connection);
 });
 
 // Start the server.
 http.listen(3000, function() {});
-
-
-
-// require('./test')(notificationEmitter);

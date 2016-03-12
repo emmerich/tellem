@@ -1,0 +1,24 @@
+<section class='send-notification side-list-item'>
+    <input ui-sref='send' type='button' class='send-notification-button' value='Send Notification'>
+</section>
+<header class='channels-header'>Channels</header>
+<section class='subscribed-channels side-list-item'>
+    <header class='channel-list-header'>Subscribed</header>
+    <ul class='channel-list'>
+        <li class='channel-list-item' ng-repeat='channel in subscribedChannels'>
+            <div class='cli-name'>{{channel.name}}</div><div class='cli-button'>
+                <input type='button' ng-click='unsubscribe(channel._id)' class='cli-button-single' value='Unsubscribe'>
+            </div>
+        </li>
+    </ul>
+</section>
+<section class='available-channels side-list-item'>
+    <header class='channel-list-header'>Available</header>
+    <ul class='channel-list'>
+        <li class='channel-list-item' ng-repeat='channel in availableChannels'>
+            <div class='cli-name'>{{channel.name}}</div><div class='cli-button'>
+                <input type='button' ng-click='subscribe(channel._id)' class='cli-button-single' value='Subscribe'>
+            </div>
+        </li>
+    </ul>
+</section>

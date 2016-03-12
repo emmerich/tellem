@@ -1,12 +1,11 @@
 'use strict';
 
-var NotificationEvent = require('../../model/NotificationEvent');
-var Notification = require('../../model/Notification');
+var BulletinRequest = require('../../common/model/BulletinRequest');
 
-angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.notifier'])
+angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins'])
 
-	.controller('HomeCtrl', ['$rootScope', '$scope', 'users', 'channels', 'notifier', 'currentUser',
-		function($rootScope, $scope, users, channels, notifier, currentUser) {
+	.controller('SideListCtrl', ['$scope', 'users', 'channels', 'currentUser',
+		function($scope, users, channels, currentUser) {
 			var user = currentUser();
 
 			$scope.$watch('user.subscribedChannels', function() {
@@ -16,37 +15,26 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 				});
 			});
 
-			$scope.notificationChannel = 'dev_updates';
-			$scope.notificationMessage = 'test';
-
-			// $scope.notificationToSend = {
-			// 	message: '',
-			// 	channel: ''
-			// };
-
 			$scope.subscribe = function(channelId) {
-				users.subscribeToChannel(currentUser(), channelId);
+				users.subscribeToChannel(user, channelId);
 			};
 
 			$scope.unsubscribe = function(channelId) {
-				users.unsubscribeFromChannel(currentUser(), channelId);
-			};
-
-			$scope.info = function(channelId) {
-				console.log('show info', channelId);
-			};
-
-			$scope.notify = function() {
-				notifier.notify(new NotificationEvent({
-					notification: new Notification({
-						title: 'Test',
-						message: $scope.notificationMessage,
-						icon: 'img/icon.png',
-						language: 'en-GB'
-					}),
-
-					channel: channels.getByName($scope.notificationChannel)
-				}));
+				users.unsubscribeFromChannel(user, channelId);
 			};
 		}
-	]);
+	])
+
+	.controller('SendCtrl', ['$scope', 'bulletins', 'channels', function($scope, bulletins, channels) {
+		$scope.channel = 'dev_updates';
+		$scope.message = 'test';
+
+		$scope.send = function() {
+			var bulletinRequest = new BulletinRequest({
+				message: $scope.message,
+				channelId: channels.getByName($scope.channel)._id
+			});
+
+			bulletins.send(bulletinRequest);
+		};
+	}]);

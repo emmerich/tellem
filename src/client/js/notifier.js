@@ -1,20 +1,32 @@
-'use strict';
+angular.module('tellemApp.notifier', ['tellemApp.db'])
 
-/*
-	The notifier is the module that handles sending notifications FROM the
-	client to the server. It has nothing to do with receiving notifications
-	from the server, that's done in the notification module.
- */
+	.factory('notifier', ['ChromeNotifier', function(chromeNotifier) {
+		return chromeNotifier;
+	}])
 
-angular.module('tellemApp.notifier', ['tellemApp.socket'])
-
-	.factory('notifier', ['socket', function(socket) {
+	.factory('ChromeNotifier', ['notificationTitle', 'channels', function(notificationTitle, channels) {
 		return {
-			notify: function(notificationEvent) {
-				console.log('off it goes', notificationEvent);
-				socket.emit('notify', {
-					notificationEvent: notificationEvent
+			notify: function(bulletin) {
+				var channel = channels.getById(bulletin.channelId);
+				var title = notificationTitle.get(bulletin, channel);
+
+				new Notification(title, {
+					title: title,
+					dir: "auto",
+					lang: bulletin.language,
+					body: bulletin.message,
+					tag: channel.name,
+					icon: bulletin.icon
+					// onclick, onshow, onerror, onclose
 				});
 			}
+		}
+	}])
+
+	.factory('notificationTitle', function() {
+		return {
+			get: function(bulletin, channel) {
+				return bulletin.sender + '@' + channel.name;
+			}
 		};
-	}]);
+	});

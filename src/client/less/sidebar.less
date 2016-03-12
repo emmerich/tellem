@@ -1,0 +1,82 @@
+@channel-list-item-left-padding: 20px;
+@cli-button-width: 90px;
+
+section.side-list {
+	background-color: @side-list-colour;
+	color: @fc-side-list-colour;
+	padding: 0 10px;
+	width: @left-side-bar-width;
+	float: left;
+}
+
+section.side-list-item {
+	padding: @side-bar-horizontal-padding 0;
+}
+
+section.send-notification {
+	// padding-left: 10px;
+	// padding-right: 10px;
+}
+
+input.send-notification-button {
+	height: 30px;
+	width: 100%;
+	color: black;
+}
+
+header.channels-header {
+	font-size: 1.5em;
+	text-align: center;
+}
+
+ul.channel-list {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	padding-left: @channel-list-item-left-padding;
+}
+
+li.channel-list-item {
+	> div {
+		display: inline-block;
+		padding: 3px 0;
+	}
+}
+
+div.cli-button {
+	width: @cli-button-width;
+}
+
+div.cli-name {
+	width: @left-side-bar-width -
+		@channel-list-item-left-padding -
+		@cli-button-width;
+}
+
+input.cli-button-single {
+	width: 100%;
+	color: black;
+}
+
+
+// old
+
+section.subscribed {
+	// variable width based on screen size?
+	width: @left-side-bar-width;
+}
+
+
+@side-list-item-sub-width: 130px;
+
+div.side-list-item-buttons {
+	width: @side-list-item-sub-width;
+
+	> input {
+		color: black;
+	}
+}
+
+header.side-list-item-header {
+	width: @left-side-bar-width - @side-list-item-sub-width;
+}

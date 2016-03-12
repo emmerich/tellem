@@ -4,17 +4,7 @@
 // a variable to anything. Actually we just require them, they come in and
 // modify the global object.
 require('angular');
-require('angular-route');
-
-angular.module('tellemApp', ['ngRoute', 'tellemApp.bootstrap', 'tellemApp.controllers', 'tellemApp.notification'])
-
-	.config(['$routeProvider', function($routeProvider) {
-		$routeProvider.when('/', {
-			controller: 'HomeCtrl',
-			templateUrl: 'view/home.html'
-		})
-		.otherwise({ redirectTo: '/' });
-	}]);
+require('angular-ui-router');
 
 // Typically this is what you would see in the index.html file, but we can load
 // them using CommonJS. Any order as Angular takes care of the actual dependency
@@ -22,8 +12,25 @@ angular.module('tellemApp', ['ngRoute', 'tellemApp.bootstrap', 'tellemApp.contro
 require('./controllers');
 require('./socket');
 require('./sync');
-require('./notification');
+require('./notifier');
 require('./db');
 require('./session');
-require('./notifier');
+require('./bulletins');
 require('./bootstrap');
+
+angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.controllers', 'tellemApp.bulletins'])
+
+	.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
+		$urlRouterProvider.otherwise('/');
+
+		$stateProvider.state('home', {
+			url: '/',
+			templateUrl: 'view/home.html'
+		})
+
+		.state('send', {
+			url: '/send',
+			templateUrl: 'view/sender.html',
+			controller: 'SendCtrl'
+		});
+	}]);
