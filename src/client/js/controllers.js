@@ -25,8 +25,20 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		}
 	])
 
-	.controller('SendCtrl', ['$scope', 'bulletins', 'channels', function($scope, bulletins, channels) {
-		$scope.channel = 'dev_updates';
+	.controller('SendCtrl', ['$stateParams', '$scope', '$rootScope', 'bulletins', 'channels', function($stateParams, $scope, $rootScope, bulletins, channels) {
+		$rootScope.activeChannelId = null;
+
+		var preDefinedChannel = $stateParams.channel;
+
+		if(Array.isArray(preDefinedChannel)) {
+			console.log('Send page doesnt yet support multiple channels in the URL (', preDefinedChannel ,') - picked the first one.');
+			$scope.channel = channels.getById(preDefinedChannel[0]).name;
+		} else if(preDefinedChannel === undefined) {
+			$scope.channel = '';
+		} else {
+			$scope.channel = channels.getById(preDefinedChannel).name;
+		}
+		
 		$scope.message = 'test';
 
 		$scope.send = function() {
@@ -37,4 +49,25 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 
 			bulletins.send(bulletinRequest);
 		};
+	}])
+
+	.controller('ChannelCtrl', ['$stateParams', '$scope', '$rootScope', 'channels', 'users', 'currentUser', function($stateParams, $scope, $rootScope, channels, users, currentUser) {
+		var channelId = $stateParams.channelId;
+
+		$scope.channel = channels.getById(channelId);
+		
+		$rootScope.activeChannelId = channelId;
+
+		$scope.unsubscribe = function(channelId) {
+			users.unsubscribeFromChannel(currentUser(), channelId);
+		};
+
+		$scope.subscribe = function(channelId) {
+			users.subscribeToChannel(currentUser(), channelId);
+		};
+
+		$scope.$watch('user.subscribedChannels', function() {
+			$scope.subscribed = currentUser().subscribedChannels.indexOf(channelId) > -1;
+		});
+
 	}]);

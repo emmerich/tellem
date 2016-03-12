@@ -4,12 +4,12 @@ var Channel = require('../../common/model/Channel');
 var channels = [new Channel({
 	_id: 0,
 	name: 'dev_updates',
-	description: 'Updates on the development servers.',
+	description: 'Provides updates on the state of the development servers. Restarts, downtime, known issues.',
 	senders: [0]
 }),new Channel({
 	_id: 1,
 	name: 'new_clients',
-	description: 'New clients.',
+	description: 'Bulletins about any new clients we receive.',
 	senders: [0]
 }),new Channel({
 	_id: 2,

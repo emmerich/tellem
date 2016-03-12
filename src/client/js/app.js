@@ -29,8 +29,14 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 		})
 
 		.state('send', {
-			url: '/send',
+			url: '/send?{channel:int}',
 			templateUrl: 'view/sender.html',
 			controller: 'SendCtrl'
+		})
+
+		.state('channel', {
+			url: '/channel/{channelId:int}',
+			templateUrl: 'view/channel.html',
+			controller: 'ChannelCtrl'
 		});
 	}]);

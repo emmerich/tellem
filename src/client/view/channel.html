@@ -1,0 +1,17 @@
+<section class='channel-container centre-section-container'>
+	<header class='centre-header'>
+		<h2 class='channel-header-name'>{{channel.name}}</h2>
+		<div class='channel-header-buttons'>
+			<input type='button' ui-sref='send({ channel: channel._id })' value='Send Bulletin'>
+			<input type='button' ng-if='subscribed' ng-click='unsubscribe(channel._id)' value='Unsubscribe'>
+			<input type='button' ng-if='!subscribed' ng-click='subscribe(channel._id)' value='Subscribe'>
+		</div>
+	</header>
+
+	<section class='channel-info'>
+		<p>{{channel.description}}</p>
+	</section>
+
+
+</section>
+

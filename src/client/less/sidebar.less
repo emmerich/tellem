@@ -1,5 +1,5 @@
 @channel-list-item-left-padding: 20px;
-@cli-button-width: 90px;
+@cli-button-width: 140px;
 
 section.side-list {
 	background-color: @side-list-colour;
@@ -43,6 +43,10 @@ li.channel-list-item {
 	}
 }
 
+li.active {
+	background-color: @base-colour;
+}
+
 div.cli-button {
 	width: @cli-button-width;
 }
@@ -56,6 +60,13 @@ div.cli-name {
 input.cli-button-single {
 	width: 100%;
 	color: black;
+}
+
+input.cli-button-double {
+	width: 50%;
+	color: black;
+	display: inline-block;
+	font-size: 0.8em;
 }
 
 
