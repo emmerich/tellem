@@ -4,16 +4,22 @@ var BulletinRequest = require('../../common/model/BulletinRequest');
 
 angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins'])
 
-	.controller('SideListCtrl', ['$scope', 'users', 'channels', 'currentUser',
-		function($scope, users, channels, currentUser) {
+	.controller('SideListCtrl', ['$rootScope', '$scope', 'users', 'channels', 'currentUser',
+		function($rootScope, $scope, users, channels, currentUser) {
 			var user = currentUser();
 
-			$scope.$watch('user.subscribedChannels', function() {
+			// pass the updateFn to the subscribe/unsubscribe call, instead
+			// of having to update everything
+
+			var updateFn = function(newValue, oldValue) {
 				$scope.subscribedChannels = users.getSubscribedChannels(user);
 				$scope.availableChannels = channels.get().filter(function(channel) {
 					return !users.isSubscribedToChannel(user, channel);
 				});
-			});
+			};	
+
+			$scope.$watch('user.subscribedChannels', updateFn);
+			$rootScope.$watch('channels', updateFn);
 
 			$scope.subscribe = function(channelId) {
 				users.subscribeToChannel(user, channelId);
@@ -55,7 +61,6 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		var channelId = $stateParams.channelId;
 
 		$scope.channel = channels.getById(channelId);
-		
 		$rootScope.activeChannelId = channelId;
 
 		$scope.unsubscribe = function(channelId) {
@@ -69,5 +74,17 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		$scope.$watch('user.subscribedChannels', function() {
 			$scope.subscribed = currentUser().subscribedChannels.indexOf(channelId) > -1;
 		});
+	}])
 
+	.controller('NewChannelCtrl', ['$rootScope', '$scope', '$state', 'channels', 'currentUser', function($rootScope, $scope, $state, channels, currentUser) {
+		$rootScope.activeChannelId = null;
+
+		$scope.name = '';
+		$scope.description = '';
+
+		$scope.save = function() {
+			channels.create($scope.name, $scope.description, [currentUser()._id]).then(function(modelCreate) {
+				$state.go('channel.id', { channelId: modelCreate.model._id });
+			});
+		};
 	}]);

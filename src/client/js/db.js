@@ -1,11 +1,13 @@
 'use strict';
 
+var Channel = require('../../common/model/Channel');
+
 angular.module('tellemApp.db', ['tellemApp.sync'])
 
 	.factory('users', ['$rootScope', 'sync', 'channels', function($rootScope, sync, channels) {
 
-		var update = function(user, update) {
-			sync.update('users', user._id, update);
+		var update = function(id, update) {
+			return sync.update('users', id, update);
 		};
 
 		return {
@@ -22,18 +24,18 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 			subscribeToChannel: function(user, channelId) {
 				var updatedChannels = user.subscribedChannels.slice();
 				updatedChannels.push(channelId);
-				update(user, { subscribedChannels: updatedChannels });
+				return update(user._id, { subscribedChannels: updatedChannels });
 			},
 
 			unsubscribeFromChannel: function(user, channelId) {
 				var updatedChannels = user.subscribedChannels.slice();
 				updatedChannels.splice(updatedChannels.indexOf(channelId), 1);
-				update(user, { subscribedChannels: updatedChannels });
+				return update(user._id, { subscribedChannels: updatedChannels });
 			}
 		}
 	}])
 
-	.factory('channels', ['$rootScope', function($rootScope) {
+	.factory('channels', ['$rootScope', 'sync', function($rootScope, sync) {
 		return {
 			get: function() {
 				return $rootScope.channels;
@@ -49,6 +51,17 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 				return $rootScope.channels.filter(function(channel) {
 					return channel.name === name;
 				})[0];
+			},
+
+			create: function(name, description, senders) {
+				var channel = new Channel({
+					_id: null,
+					name: name,
+					description: description,
+					senders: senders
+				});
+
+				return sync.create('channels', channel);
 			}
 		}
 	}]);

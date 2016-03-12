@@ -17,6 +17,7 @@ require('./db');
 require('./session');
 require('./bulletins');
 require('./bootstrap');
+require('./ack');
 
 angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.controllers', 'tellemApp.bulletins'])
 
@@ -35,8 +36,21 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 		})
 
 		.state('channel', {
-			url: '/channel/{channelId:int}',
-			templateUrl: 'view/channel.html',
-			controller: 'ChannelCtrl'
-		});
+			url: '/channel',
+			// Need to do this so that the child template renders
+			// https://github.com/angular-ui/ui-router/issues/325
+			template: '<ui-view />'
+		})
+
+			.state('channel.id', {
+				url: '/{channelId:int}',
+				templateUrl: 'view/channel.html',
+				controller: 'ChannelCtrl'
+			})
+
+			.state('channel.new', {
+				url: '/new',
+				templateUrl: '/view/channel.new.html',
+				controller: 'NewChannelCtrl'
+			});
 	}]);

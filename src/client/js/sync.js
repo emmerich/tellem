@@ -1,14 +1,16 @@
 'use strict';
 
 var ModelUpdateRequest = require('../../common/model/ModelUpdateRequest');
+var ModelCreateRequest = require('../../common/model/ModelCreateRequest');
 var event = require('../../common/event');
+var Channel = require('../../common/model/Channel');
 
-angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
+angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tellemApp.ack'])
 
 	// Code for listening constantly for updates to models on the server
 	.run(['$rootScope', 'socket', 'acks', 'currentUser', function($rootScope, socket, acks, currentUser) {
-		socket.on(event.MODEL_UPDATE, function(modelUpdate) {
-			console.log('update received', modelUpdate);
+		socket.on(event.MODEL_UPDATE, function(payload) {
+			var modelUpdate = payload.data;
 
 			// process the update
 			// how to decide where to process the update. depends on the collection
@@ -24,14 +26,19 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 						});
 					}
 
-					// as we are outside of any $scope, we must force an update on the root
-					$rootScope.$apply();
+
+
+					
 
 					break;
 				default:
 					throw 'Unknown update collection: ' + collection;
 			}
 
+			acks.resolve(payload._ack, payload.data);
+
+			// as we are outside of any $scope, we must force an update on the root
+			$rootScope.$apply();
 			// acks.forEach(function(ack) {
 			// 	if(ack.ackIsForUpdate(update)) {
 			// 		console.log('update was an ack');
@@ -40,57 +47,28 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 			// 	}
 			// });
 		});
-	}])
 
-	.factory('Ack', function() {
-		var Ack = function(collection, id, data, fn) {
-			this.collection = collection;
-			this.id = id;
-			this.data = data;
-			this.fn = fn;
-		};
+		socket.on(event.MODEL_CREATE, function(payload) {
+			var modelCreate = payload.data;
 
-		Ack.prototype.ackIsForUpdate = function(update) {
-			return update.collection === this.collection &&
-				update.id === this.id &&
-				angular.equals(update.data, this.data);
-		};
+			switch(modelCreate.collection) {
+				case 'channels':
+					var channel = new Channel(modelCreate.model);
+					var newChannels = $rootScope.channels.slice();
+					newChannels.push(channel);
+					$rootScope.channels = newChannels;
 
-		Ack.prototype.equals = function(ack) {
-			return this.ackIsForUpdate({
-					collection: ack.collection,
-					id: ack.id,
-					data: ack.data
-				}) && this.fn === ack.fn;
-		};
-
-		return Ack;
-	})
-
-	.factory('acks', ['Ack', function(Ack) {
-		var acks = [];
-		return {
-			acks: acks,
-
-			forEach: acks.forEach.bind(acks),
-
-			add: function(collection, id, data, fn) {
-				acks.push(new Ack(collection, id, data, fn));
-			},
-
-			remove: function(ack) {
-				var index = acks.findIndex(function(_ack) {
-					return _ack.equals(ack);
-				});
-
-				if(index > -1) {
-					acks.splice(index, 1);
-				}
+					break;
+				default:
+					throw 'Unknown update collection: ' + modelCreate.collection;
 			}
-		}
+
+			acks.resolve(payload._ack, payload.data);
+			$rootScope.$apply();
+		});
 	}])
 
-	.factory('sync', ['socket', function(socket) {
+	.factory('sync', ['socket', 'acks', '$q', function(socket, acks, $q) {
 		return {
 			update: function(collection, id, update) {
 				var request = new ModelUpdateRequest({
@@ -98,8 +76,29 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 					collection: collection,
 					update: update
 				});
+				var deferred = $q.defer();
 
-				socket.emit(event.MODEL_UPDATE_REQUEST, request);
+				socket.emit(event.MODEL_UPDATE_REQUEST, {
+					data: request,
+					_ack: acks.create(deferred)
+				});
+
+				return deferred.promise;
+			},
+
+			create: function(collection, model) {
+				var request = new ModelCreateRequest({
+					collection: collection,
+					model: model
+				});
+				var deferred = $q.defer();
+
+				socket.emit(event.MODEL_CREATE_REQUEST, {
+					data: request,
+					_ack: acks.create(deferred)
+				});
+
+				return deferred.promise;
 			}
 		}
 	}]);

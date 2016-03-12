@@ -8,7 +8,8 @@ var passportSocketIo = require('passport.socketio');
 var MongoStore = require('connect-mongo')(session);
 
 var BulletinEmitter = require('./emitters/BulletinEmitter');
-var ModelUpdateEmitter = require('./emitters/ModelUpdateEmitter');
+var BaseEmitter = require('./emitters/BaseEmitter');
+var event = require('../common/event');
 var Connection = require('./connection/Connection');
 var ConnectionManager = require('./connection/ConnectionManager');
 
@@ -44,10 +45,12 @@ io.use(passportSocketIo.authorize({
 }));
 
 var bulletinEmitter = new BulletinEmitter();
-var modelUpdateEmitter = new ModelUpdateEmitter();
+var modelUpdateEmitter = new BaseEmitter({ eventName: event.MODEL_UPDATE });
+var modelCreateEmitter = new BaseEmitter({ eventName: event.MODEL_CREATE });
 var connectionManager = new ConnectionManager({
 	bulletinEmitter: bulletinEmitter,
-	modelUpdateEmitter: modelUpdateEmitter
+	modelUpdateEmitter: modelUpdateEmitter,
+	modelCreateEmitter: modelCreateEmitter
 });
 
 io.on('connection', function(socket) {

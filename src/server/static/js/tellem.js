@@ -39076,7 +39076,7 @@ WS.prototype.check = function(){
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../transport":18,"component-inherit":26,"debug":12,"engine.io-parser":27,"parseqs":38,"ws":65,"yeast":39}],24:[function(require,module,exports){
+},{"../transport":18,"component-inherit":26,"debug":12,"engine.io-parser":27,"parseqs":38,"ws":68,"yeast":39}],24:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 var hasCORS = require('has-cors');
 
@@ -42216,6 +42216,29 @@ function toArray(list, index) {
 },{}],51:[function(require,module,exports){
 'use strict';
 
+angular.module('tellemApp.ack', [])
+	
+	.factory('acks', function() {
+
+		var acks = {};
+
+		return {
+			create: function(deferred) {
+				var id = Date.now();
+				acks[id] = deferred;
+				return id;
+			},
+
+			resolve: function() {
+				var values = Array.prototype.slice.call(arguments);
+				var id = values.shift();
+				acks[id].resolve.apply(this, values);
+			}
+		};
+	});
+},{}],52:[function(require,module,exports){
+'use strict';
+
 // AngularJS packages are not CommonJS packages, so we don't have to assign
 // a variable to anything. Actually we just require them, they come in and
 // modify the global object.
@@ -42233,6 +42256,7 @@ require('./db');
 require('./session');
 require('./bulletins');
 require('./bootstrap');
+require('./ack');
 
 angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.controllers', 'tellemApp.bulletins'])
 
@@ -42251,12 +42275,25 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 		})
 
 		.state('channel', {
-			url: '/channel/{channelId:int}',
-			templateUrl: 'view/channel.html',
-			controller: 'ChannelCtrl'
-		});
+			url: '/channel',
+			// Need to do this so that the child template renders
+			// https://github.com/angular-ui/ui-router/issues/325
+			template: '<ui-view />'
+		})
+
+			.state('channel.id', {
+				url: '/{channelId:int}',
+				templateUrl: 'view/channel.html',
+				controller: 'ChannelCtrl'
+			})
+
+			.state('channel.new', {
+				url: '/new',
+				templateUrl: '/view/channel.new.html',
+				controller: 'NewChannelCtrl'
+			});
 	}]);
-},{"./bootstrap":52,"./bulletins":53,"./controllers":54,"./db":55,"./notifier":56,"./session":57,"./socket":58,"./sync":59,"angular":3,"angular-ui-router":1}],52:[function(require,module,exports){
+},{"./ack":51,"./bootstrap":53,"./bulletins":54,"./controllers":55,"./db":56,"./notifier":57,"./session":58,"./socket":59,"./sync":60,"angular":3,"angular-ui-router":1}],53:[function(require,module,exports){
 'use strict';
 
 var User = require('../../common/model/user');
@@ -42276,7 +42313,7 @@ angular.module('tellemApp.bootstrap', [])
 
 		$rootScope.user = new User(bootstrap.user);
 	}]);
-},{"../../common/model/channel":63,"../../common/model/user":64}],53:[function(require,module,exports){
+},{"../../common/model/channel":66,"../../common/model/user":67}],54:[function(require,module,exports){
 'use strict';
 
 var event = require('../../common/event');
@@ -42296,27 +42333,35 @@ angular.module('tellemApp.bulletins', ['tellemApp.socket', 'tellemApp.notifier']
 	.factory('bulletins', ['socket', function(socket) {
 		return {
 			send: function(bulletinRequest) {
-				socket.emit(event.BULLETIN_REQUEST, bulletinRequest);
+				socket.emit(event.BULLETIN_REQUEST, {
+					data: bulletinRequest
+				});
 			}
 		};
 	}]);
-},{"../../common/event":60}],54:[function(require,module,exports){
+},{"../../common/event":61}],55:[function(require,module,exports){
 'use strict';
 
 var BulletinRequest = require('../../common/model/BulletinRequest');
 
 angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins'])
 
-	.controller('SideListCtrl', ['$scope', 'users', 'channels', 'currentUser',
-		function($scope, users, channels, currentUser) {
+	.controller('SideListCtrl', ['$rootScope', '$scope', 'users', 'channels', 'currentUser',
+		function($rootScope, $scope, users, channels, currentUser) {
 			var user = currentUser();
 
-			$scope.$watch('user.subscribedChannels', function() {
+			// pass the updateFn to the subscribe/unsubscribe call, instead
+			// of having to update everything
+
+			var updateFn = function(newValue, oldValue) {
 				$scope.subscribedChannels = users.getSubscribedChannels(user);
 				$scope.availableChannels = channels.get().filter(function(channel) {
 					return !users.isSubscribedToChannel(user, channel);
 				});
-			});
+			};	
+
+			$scope.$watch('user.subscribedChannels', updateFn);
+			$rootScope.$watch('channels', updateFn);
 
 			$scope.subscribe = function(channelId) {
 				users.subscribeToChannel(user, channelId);
@@ -42358,7 +42403,6 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		var channelId = $stateParams.channelId;
 
 		$scope.channel = channels.getById(channelId);
-		
 		$rootScope.activeChannelId = channelId;
 
 		$scope.unsubscribe = function(channelId) {
@@ -42372,17 +42416,31 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		$scope.$watch('user.subscribedChannels', function() {
 			$scope.subscribed = currentUser().subscribedChannels.indexOf(channelId) > -1;
 		});
+	}])
 
+	.controller('NewChannelCtrl', ['$rootScope', '$scope', '$state', 'channels', 'currentUser', function($rootScope, $scope, $state, channels, currentUser) {
+		$rootScope.activeChannelId = null;
+
+		$scope.name = '';
+		$scope.description = '';
+
+		$scope.save = function() {
+			channels.create($scope.name, $scope.description, [currentUser()._id]).then(function(modelCreate) {
+				$state.go('channel.id', { channelId: modelCreate.model._id });
+			});
+		};
 	}]);
-},{"../../common/model/BulletinRequest":61}],55:[function(require,module,exports){
+},{"../../common/model/BulletinRequest":62}],56:[function(require,module,exports){
 'use strict';
+
+var Channel = require('../../common/model/Channel');
 
 angular.module('tellemApp.db', ['tellemApp.sync'])
 
 	.factory('users', ['$rootScope', 'sync', 'channels', function($rootScope, sync, channels) {
 
-		var update = function(user, update) {
-			sync.update('users', user._id, update);
+		var update = function(id, update) {
+			return sync.update('users', id, update);
 		};
 
 		return {
@@ -42399,18 +42457,18 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 			subscribeToChannel: function(user, channelId) {
 				var updatedChannels = user.subscribedChannels.slice();
 				updatedChannels.push(channelId);
-				update(user, { subscribedChannels: updatedChannels });
+				return update(user._id, { subscribedChannels: updatedChannels });
 			},
 
 			unsubscribeFromChannel: function(user, channelId) {
 				var updatedChannels = user.subscribedChannels.slice();
 				updatedChannels.splice(updatedChannels.indexOf(channelId), 1);
-				update(user, { subscribedChannels: updatedChannels });
+				return update(user._id, { subscribedChannels: updatedChannels });
 			}
 		}
 	}])
 
-	.factory('channels', ['$rootScope', function($rootScope) {
+	.factory('channels', ['$rootScope', 'sync', function($rootScope, sync) {
 		return {
 			get: function() {
 				return $rootScope.channels;
@@ -42426,10 +42484,21 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 				return $rootScope.channels.filter(function(channel) {
 					return channel.name === name;
 				})[0];
+			},
+
+			create: function(name, description, senders) {
+				var channel = new Channel({
+					_id: null,
+					name: name,
+					description: description,
+					senders: senders
+				});
+
+				return sync.create('channels', channel);
 			}
 		}
 	}]);
-},{}],56:[function(require,module,exports){
+},{"../../common/model/Channel":63}],57:[function(require,module,exports){
 angular.module('tellemApp.notifier', ['tellemApp.db'])
 
 	.factory('notifier', ['ChromeNotifier', function(chromeNotifier) {
@@ -42462,7 +42531,7 @@ angular.module('tellemApp.notifier', ['tellemApp.db'])
 			}
 		};
 	});
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 'use strict';
 
 angular.module('tellemApp.session', [])
@@ -42472,7 +42541,7 @@ angular.module('tellemApp.session', [])
 			return $rootScope.user;
 		};
 	}]);
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 'use strict';
 
 var io = require('socket.io-client');
@@ -42482,18 +42551,20 @@ angular.module('tellemApp.socket', [])
 	.factory('socket', function() {
 		return io();
 	});
-},{"socket.io-client":4}],59:[function(require,module,exports){
+},{"socket.io-client":4}],60:[function(require,module,exports){
 'use strict';
 
 var ModelUpdateRequest = require('../../common/model/ModelUpdateRequest');
+var ModelCreateRequest = require('../../common/model/ModelCreateRequest');
 var event = require('../../common/event');
+var Channel = require('../../common/model/Channel');
 
-angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
+angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tellemApp.ack'])
 
 	// Code for listening constantly for updates to models on the server
 	.run(['$rootScope', 'socket', 'acks', 'currentUser', function($rootScope, socket, acks, currentUser) {
-		socket.on(event.MODEL_UPDATE, function(modelUpdate) {
-			console.log('update received', modelUpdate);
+		socket.on(event.MODEL_UPDATE, function(payload) {
+			var modelUpdate = payload.data;
 
 			// process the update
 			// how to decide where to process the update. depends on the collection
@@ -42509,14 +42580,19 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 						});
 					}
 
-					// as we are outside of any $scope, we must force an update on the root
-					$rootScope.$apply();
+
+
+					
 
 					break;
 				default:
 					throw 'Unknown update collection: ' + collection;
 			}
 
+			acks.resolve(payload._ack, payload.data);
+
+			// as we are outside of any $scope, we must force an update on the root
+			$rootScope.$apply();
 			// acks.forEach(function(ack) {
 			// 	if(ack.ackIsForUpdate(update)) {
 			// 		console.log('update was an ack');
@@ -42525,57 +42601,28 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 			// 	}
 			// });
 		});
-	}])
 
-	.factory('Ack', function() {
-		var Ack = function(collection, id, data, fn) {
-			this.collection = collection;
-			this.id = id;
-			this.data = data;
-			this.fn = fn;
-		};
+		socket.on(event.MODEL_CREATE, function(payload) {
+			var modelCreate = payload.data;
 
-		Ack.prototype.ackIsForUpdate = function(update) {
-			return update.collection === this.collection &&
-				update.id === this.id &&
-				angular.equals(update.data, this.data);
-		};
+			switch(modelCreate.collection) {
+				case 'channels':
+					var channel = new Channel(modelCreate.model);
+					var newChannels = $rootScope.channels.slice();
+					newChannels.push(channel);
+					$rootScope.channels = newChannels;
 
-		Ack.prototype.equals = function(ack) {
-			return this.ackIsForUpdate({
-					collection: ack.collection,
-					id: ack.id,
-					data: ack.data
-				}) && this.fn === ack.fn;
-		};
-
-		return Ack;
-	})
-
-	.factory('acks', ['Ack', function(Ack) {
-		var acks = [];
-		return {
-			acks: acks,
-
-			forEach: acks.forEach.bind(acks),
-
-			add: function(collection, id, data, fn) {
-				acks.push(new Ack(collection, id, data, fn));
-			},
-
-			remove: function(ack) {
-				var index = acks.findIndex(function(_ack) {
-					return _ack.equals(ack);
-				});
-
-				if(index > -1) {
-					acks.splice(index, 1);
-				}
+					break;
+				default:
+					throw 'Unknown update collection: ' + modelCreate.collection;
 			}
-		}
+
+			acks.resolve(payload._ack, payload.data);
+			$rootScope.$apply();
+		});
 	}])
 
-	.factory('sync', ['socket', function(socket) {
+	.factory('sync', ['socket', 'acks', '$q', function(socket, acks, $q) {
 		return {
 			update: function(collection, id, update) {
 				var request = new ModelUpdateRequest({
@@ -42583,33 +42630,48 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket'])
 					collection: collection,
 					update: update
 				});
+				var deferred = $q.defer();
 
-				socket.emit(event.MODEL_UPDATE_REQUEST, request);
+				socket.emit(event.MODEL_UPDATE_REQUEST, {
+					data: request,
+					_ack: acks.create(deferred)
+				});
+
+				return deferred.promise;
+			},
+
+			create: function(collection, model) {
+				var request = new ModelCreateRequest({
+					collection: collection,
+					model: model
+				});
+				var deferred = $q.defer();
+
+				socket.emit(event.MODEL_CREATE_REQUEST, {
+					data: request,
+					_ack: acks.create(deferred)
+				});
+
+				return deferred.promise;
 			}
 		}
 	}]);
-},{"../../common/event":60,"../../common/model/ModelUpdateRequest":62}],60:[function(require,module,exports){
+},{"../../common/event":61,"../../common/model/Channel":63,"../../common/model/ModelCreateRequest":64,"../../common/model/ModelUpdateRequest":65}],61:[function(require,module,exports){
 module.exports = {
 	BULLETIN_REQUEST: 'bulletinRequest',
 	BULLETIN: 'bulletin',
-	MODEL_UPDATE_REQUEST: 'moduleUpdateRequest',
-	MODEL_UPDATE: 'modelUpdate'
+	MODEL_UPDATE_REQUEST: 'modelUpdateRequest',
+	MODEL_UPDATE: 'modelUpdate',
+	MODEL_CREATE_REQUEST: 'modelCreateRequest',
+	MODEL_CREATE: 'modelCreate'
 };
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 var BulletinRequest = function(params) {
 	this.message = params.message;
 	this.channelId = params.channelId;
 };
 
 module.exports = BulletinRequest;
-},{}],62:[function(require,module,exports){
-var ModelUpdateRequest = function(params) {
-	this.id = params.id;
-	this.collection = params.collection;
-	this.update = params.update;
-};
-
-module.exports = ModelUpdateRequest;
 },{}],63:[function(require,module,exports){
 var Channel = function(params) {
 	this._id = params._id;
@@ -42620,6 +42682,23 @@ var Channel = function(params) {
 
 module.exports = Channel;
 },{}],64:[function(require,module,exports){
+var ModelCreateRequest = function(params) {
+	this.collection = params.collection;
+	this.model = params.model;
+};
+
+module.exports = ModelCreateRequest;
+},{}],65:[function(require,module,exports){
+var ModelUpdateRequest = function(params) {
+	this.id = params.id;
+	this.collection = params.collection;
+	this.update = params.update;
+};
+
+module.exports = ModelUpdateRequest;
+},{}],66:[function(require,module,exports){
+arguments[4][63][0].apply(exports,arguments)
+},{"dup":63}],67:[function(require,module,exports){
 var User = function(params) {
 	this._id = params._id;
 	this.username = params.username;
@@ -42628,6 +42707,6 @@ var User = function(params) {
 };
 
 module.exports = User;
-},{}],65:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 
-},{}]},{},[51]);
+},{}]},{},[52]);

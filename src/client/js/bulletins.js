@@ -17,7 +17,9 @@ angular.module('tellemApp.bulletins', ['tellemApp.socket', 'tellemApp.notifier']
 	.factory('bulletins', ['socket', function(socket) {
 		return {
 			send: function(bulletinRequest) {
-				socket.emit(event.BULLETIN_REQUEST, bulletinRequest);
+				socket.emit(event.BULLETIN_REQUEST, {
+					data: bulletinRequest
+				});
 			}
 		};
 	}]);

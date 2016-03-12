@@ -5,7 +5,7 @@ var event = require('../../common/event');
 var channels = require('../db/channels');
 
 var BulletinEmitter = function() {
-	BaseEmitter.call(this);
+	BaseEmitter.call(this, { eventName: event.BULLETIN });
 };
 inherits(BulletinEmitter, BaseEmitter);
 
