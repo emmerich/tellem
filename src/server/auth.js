@@ -1,14 +1,13 @@
-var users = require('./db/users');
 var LocalStrategy = require('passport-local').Strategy;
 
-module.exports = function(passport) {
+module.exports = function(passport, users) {
 
     passport.serializeUser(function(user, done) {
         done(null, user._id);
     });
 
     passport.deserializeUser(function(id, done) {
-        users.findById(id).then(function(user) {
+        users.get(id).then(function(user) {
         	if(user === null) {
         		done(null, null);
         	} else {
@@ -18,7 +17,7 @@ module.exports = function(passport) {
     });
 
     passport.use(new LocalStrategy(function(username, password, done) {
-    	users.findByUsername(username).then(function(user) {
+    	users.getByUsername(username).then(function(user) {
 			if(user !== null && user.password === password) {
 				done(null, user);
 			} else {

@@ -2,6 +2,7 @@
 
 var ModelUpdateRequest = require('../../common/model/ModelUpdateRequest');
 var ModelCreateRequest = require('../../common/model/ModelCreateRequest');
+var ModelDeleteRequest = require('../../common/model/ModelDeleteRequest');
 var event = require('../../common/event');
 var Channel = require('../../common/model/Channel');
 
@@ -9,96 +10,113 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tell
 
 	// Code for listening constantly for updates to models on the server
 	.run(['$rootScope', 'socket', 'acks', 'currentUser', function($rootScope, socket, acks, currentUser) {
-		socket.on(event.MODEL_UPDATE, function(payload) {
-			var modelUpdate = payload.data;
-
-			// process the update
-			// how to decide where to process the update. depends on the collection
-			switch(modelUpdate.collection) {
+		var getCollection = function(name) {
+			switch(name) {
+				case 'channels':
+					return $rootScope.channels;
 				case 'users':
-					var thisUser = currentUser();
+					throw 'Tried to get users collection, but at the moment we only store one user';
+				default:
+					throw 'Unrecognized collection: ' + name;
+			}
+		};
 
-					if(modelUpdate.id === thisUser._id) {
-						// thisUser.subscribedChannels.push(update.data.subscribedChannels[0]);
-						// update was for the current user
-						Object.keys(modelUpdate.update).forEach(function(key) {
-							thisUser[key] = modelUpdate.update[key];
+		var setCollection = function(name, collection) {
+			switch(name) {
+				case 'channels':
+					$rootScope.channels = collection;
+					break;
+				case 'users':
+					throw 'Tried to get users collection, but at the moment we only store one user';
+				default:
+					throw 'Unrecognized collection: ' + name;
+			}
+		};
+
+		socket.on(event.DB_UPDATE, function(payload) {
+			console.log('got DB_UPDATE', payload);
+			var modelChange = payload.data;
+			var ack = payload._ack;
+
+			modelChange.updates.forEach(function(update) {
+				if(update.collection === 'users') {
+					var curr = currentUser();
+
+					if(curr._id === update.model._id) {
+						Object.keys(update.model).forEach(function(key) {
+							curr[key] = update.model[key];
 						});
 					}
+				} else {
+					throw 'Update collection ' + update.collection + ' not yet implemented.';
+				}
+			});
 
+			modelChange.creates.forEach(function(create) {
+				var collection = getCollection(create.collection);
+				var newCollection = collection.slice();
+				newCollection.push(create.model);
+				setCollection(create.collection, newCollection);
+			});
 
+			modelChange.deletes.forEach(function(deleteObj) {
+				var collection = getCollection(deleteObj.collection);
+				var index = collection.findIndex(function(obj) {
+					return obj._id === deleteObj.id;
+				});
 
-					
+				if(index > -1) {
+					var newCollection = collection.slice();
+					newCollection.splice(index, 1);
+					setCollection(deleteObj.collection, newCollection);
+				} else {
+					// something went wrong, the index wasn't in the collection
+					console.error('Tried to delete id', deleteObj.id, 'from collection', deleteObj.collection, 'but the id wasnt in the collection');
+				}
+			});
 
-					break;
-				default:
-					throw 'Unknown update collection: ' + collection;
-			}
+			acks.resolve(ack, modelChange);
 
-			acks.resolve(payload._ack, payload.data);
-
-			// as we are outside of any $scope, we must force an update on the root
-			$rootScope.$apply();
-			// acks.forEach(function(ack) {
-			// 	if(ack.ackIsForUpdate(update)) {
-			// 		console.log('update was an ack');
-			// 		ack.fn();
-			// 		acks.remove(ack);
-			// 	}
-			// });
-		});
-
-		socket.on(event.MODEL_CREATE, function(payload) {
-			var modelCreate = payload.data;
-
-			switch(modelCreate.collection) {
-				case 'channels':
-					var channel = new Channel(modelCreate.model);
-					var newChannels = $rootScope.channels.slice();
-					newChannels.push(channel);
-					$rootScope.channels = newChannels;
-
-					break;
-				default:
-					throw 'Unknown update collection: ' + modelCreate.collection;
-			}
-
-			acks.resolve(payload._ack, payload.data);
+			// a bit hacky, making the entire digest run. Maybe have updates
+			// done on ack.done
 			$rootScope.$apply();
 		});
 	}])
 
 	.factory('sync', ['socket', 'acks', '$q', function(socket, acks, $q) {
+		var emit = function(requestConstructor, event, params) {
+			var request = new requestConstructor(params);
+			var deferred = $q.defer();
+			console.log('emitting', request);
+			socket.emit(event, {
+				data: request,
+				_ack: acks.create(deferred)
+			});
+
+			return deferred.promise;
+		};
+
 		return {
 			update: function(collection, id, update) {
-				var request = new ModelUpdateRequest({
+				return emit(ModelUpdateRequest, event.MODEL_UPDATE_REQUEST, {
 					id: id,
 					collection: collection,
 					update: update
 				});
-				var deferred = $q.defer();
-
-				socket.emit(event.MODEL_UPDATE_REQUEST, {
-					data: request,
-					_ack: acks.create(deferred)
-				});
-
-				return deferred.promise;
 			},
 
 			create: function(collection, model) {
-				var request = new ModelCreateRequest({
+				return emit(ModelCreateRequest, event.MODEL_CREATE_REQUEST, {
 					collection: collection,
 					model: model
 				});
-				var deferred = $q.defer();
+			},
 
-				socket.emit(event.MODEL_CREATE_REQUEST, {
-					data: request,
-					_ack: acks.create(deferred)
+			delete: function(collection, id) {
+				return emit(ModelDeleteRequest, event.MODEL_DELETE_REQUEST, {
+					collection: collection,
+					id: id
 				});
-
-				return deferred.promise;
 			}
 		}
 	}]);

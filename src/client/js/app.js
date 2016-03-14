@@ -30,7 +30,7 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 		})
 
 		.state('send', {
-			url: '/send?{channel:int}',
+			url: '/send?{channel}',
 			templateUrl: 'view/sender.html',
 			controller: 'SendCtrl'
 		})
@@ -41,16 +41,15 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 			// https://github.com/angular-ui/ui-router/issues/325
 			template: '<ui-view />'
 		})
-
-			.state('channel.id', {
-				url: '/{channelId:int}',
-				templateUrl: 'view/channel.html',
-				controller: 'ChannelCtrl'
-			})
-
 			.state('channel.new', {
 				url: '/new',
 				templateUrl: '/view/channel.new.html',
 				controller: 'NewChannelCtrl'
+			})
+
+			.state('channel.id', {
+				url: '/:channelId',
+				templateUrl: 'view/channel.html',
+				controller: 'ChannelCtrl'
 			});
 	}]);

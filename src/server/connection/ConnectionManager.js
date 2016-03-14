@@ -1,10 +1,11 @@
 var event = require('../../common/event');
-var db = require('../db/db');
 
 var ConnectionManager = function(params) {
 	this.bulletinEmitter = params.bulletinEmitter;
-	this.modelUpdateEmitter = params.modelUpdateEmitter;
-	this.modelCreateEmitter = params.modelCreateEmitter;
+	this.dbEmitter = params.dbEmitter;
+
+	this.users = params.users;
+	this.channels = params.channels;
 };
 
 ConnectionManager.prototype.manage = function(connection) {
@@ -12,12 +13,12 @@ ConnectionManager.prototype.manage = function(connection) {
 	var user = connection.user;
 
 	this.bulletinEmitter.add(connection);
-	this.modelUpdateEmitter.add(connection);
-	this.modelCreateEmitter.add(connection);
+	this.dbEmitter.add(connection);
 
 	socket.on(event.BULLETIN_REQUEST, this._handleBulletinRequest.bind(this, user));
-	socket.on(event.MODEL_UPDATE_REQUEST, this._handleModelUpdateRequest.bind(this, user));
-	socket.on(event.MODEL_CREATE_REQUEST, this._handleModelCreateRequest.bind(this, user));
+	socket.on(event.MODEL_UPDATE_REQUEST, this._handleCRUD.bind(this, user, 'update'));
+	socket.on(event.MODEL_CREATE_REQUEST, this._handleCRUD.bind(this, user, 'create'));
+	socket.on(event.MODEL_DELETE_REQUEST, this._handleCRUD.bind(this, user, 'delete'));
 };
 
 ConnectionManager.prototype.unmanage = function(connection) {
@@ -29,20 +30,22 @@ ConnectionManager.prototype._handleBulletinRequest = function(sender, payload) {
 	this.bulletinEmitter.emit(payload.data, sender);
 };
 
-ConnectionManager.prototype._handleModelUpdateRequest = function(sender, payload) {
-	var _this = this;
+ConnectionManager.prototype._handleCRUD = function(sender, operation, payload) {
+	var request = payload.data;
+	var db = this._getDB(request.collection);
 
-	db.update(payload.data, sender).then(function(modelUpdate) {
-		_this.modelUpdateEmitter.emit(modelUpdate, payload._ack);
-	});
+	db[operation](request, payload._ack);
 };
 
-ConnectionManager.prototype._handleModelCreateRequest = function(sender, payload) {
-	var _this = this;
-
-	db.create(payload.data, sender).then(function(modelCreate) {
-		_this.modelCreateEmitter.emit(modelCreate, payload._ack);
-	});
+ConnectionManager.prototype._getDB = function(collection) {
+	switch(collection) {
+		case 'users':
+			return this.users;
+		case 'channels':
+			return this.channels;
+		default:
+			throw 'Unrecognized collection: ' + collection;
+	}
 };
 
 module.exports = ConnectionManager;

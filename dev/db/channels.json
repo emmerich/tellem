@@ -1,0 +1,18 @@
+{
+	"name": "dev_updates",
+	"description": "Provides updates on the state of the development servers. Restarts, downtime, known issues.",
+	"senders": [0],
+	"owner": 0
+}
+{
+	"name": "new_clients",
+	"description": "Bulletins about any new clients we receive.",
+	"senders": [0],
+	"owner": 0
+}
+{
+	"name": "prod_bugs",
+	"description": "Bugs that arise in the production systems.",
+	"senders": [],
+	"owner": 0
+}

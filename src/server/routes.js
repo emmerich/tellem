@@ -1,9 +1,8 @@
 var isLoggedIn = require('connect-ensure-login').ensureLoggedIn;
-var channels = require('./db/channels');
 
-module.exports = function(app, passport) {
+module.exports = function(app, passport, channels) {
 	app.get('/', isLoggedIn(), function (req, res) {
-		channels.get().then(function(channels) {
+		channels.getAll().then(function(channels) {
 			res.render('index', {
 				'bootstrap': {
 					'channels': channels,

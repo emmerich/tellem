@@ -1,7 +1,7 @@
 'use strict';
 
-var User = require('../../common/model/user');
-var Channel = require('../../common/model/channel');
+var User = require('../../common/model/User');
+var Channel = require('../../common/model/Channel');
 
 angular.module('tellemApp.bootstrap', [])
 

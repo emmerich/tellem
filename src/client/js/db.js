@@ -35,7 +35,7 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 		}
 	}])
 
-	.factory('channels', ['$rootScope', 'sync', function($rootScope, sync) {
+	.factory('channels', ['$rootScope', 'sync', 'currentUser', function($rootScope, sync, currentUser) {
 		return {
 			get: function() {
 				return $rootScope.channels;
@@ -55,13 +55,17 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 
 			create: function(name, description, senders) {
 				var channel = new Channel({
-					_id: null,
 					name: name,
 					description: description,
-					senders: senders
+					senders: senders,
+					owner: currentUser()._id
 				});
 
 				return sync.create('channels', channel);
+			},
+
+			delete: function(id) {
+				return sync.delete('channels', id);
 			}
 		}
 	}]);

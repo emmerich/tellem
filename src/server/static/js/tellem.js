@@ -42269,7 +42269,7 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 		})
 
 		.state('send', {
-			url: '/send?{channel:int}',
+			url: '/send?{channel}',
 			templateUrl: 'view/sender.html',
 			controller: 'SendCtrl'
 		})
@@ -42280,24 +42280,23 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 			// https://github.com/angular-ui/ui-router/issues/325
 			template: '<ui-view />'
 		})
-
-			.state('channel.id', {
-				url: '/{channelId:int}',
-				templateUrl: 'view/channel.html',
-				controller: 'ChannelCtrl'
-			})
-
 			.state('channel.new', {
 				url: '/new',
 				templateUrl: '/view/channel.new.html',
 				controller: 'NewChannelCtrl'
+			})
+
+			.state('channel.id', {
+				url: '/:channelId',
+				templateUrl: 'view/channel.html',
+				controller: 'ChannelCtrl'
 			});
 	}]);
 },{"./ack":51,"./bootstrap":53,"./bulletins":54,"./controllers":55,"./db":56,"./notifier":57,"./session":58,"./socket":59,"./sync":60,"angular":3,"angular-ui-router":1}],53:[function(require,module,exports){
 'use strict';
 
-var User = require('../../common/model/user');
-var Channel = require('../../common/model/channel');
+var User = require('../../common/model/User');
+var Channel = require('../../common/model/Channel');
 
 angular.module('tellemApp.bootstrap', [])
 
@@ -42313,7 +42312,7 @@ angular.module('tellemApp.bootstrap', [])
 
 		$rootScope.user = new User(bootstrap.user);
 	}]);
-},{"../../common/model/channel":66,"../../common/model/user":67}],54:[function(require,module,exports){
+},{"../../common/model/Channel":63,"../../common/model/User":67}],54:[function(require,module,exports){
 'use strict';
 
 var event = require('../../common/event');
@@ -42354,6 +42353,7 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 			// of having to update everything
 
 			var updateFn = function(newValue, oldValue) {
+				console.log('updateFn');
 				$scope.subscribedChannels = users.getSubscribedChannels(user);
 				$scope.availableChannels = channels.get().filter(function(channel) {
 					return !users.isSubscribedToChannel(user, channel);
@@ -42399,11 +42399,12 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		};
 	}])
 
-	.controller('ChannelCtrl', ['$stateParams', '$scope', '$rootScope', 'channels', 'users', 'currentUser', function($stateParams, $scope, $rootScope, channels, users, currentUser) {
+	.controller('ChannelCtrl', ['$stateParams', '$scope', '$rootScope', '$state', 'channels', 'users', 'currentUser', function($stateParams, $scope, $rootScope, $state, channels, users, currentUser) {
 		var channelId = $stateParams.channelId;
 
 		$scope.channel = channels.getById(channelId);
 		$rootScope.activeChannelId = channelId;
+		$scope.isOwner = $scope.channel.owner === currentUser()._id;
 
 		$scope.unsubscribe = function(channelId) {
 			users.unsubscribeFromChannel(currentUser(), channelId);
@@ -42411,6 +42412,12 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 
 		$scope.subscribe = function(channelId) {
 			users.subscribeToChannel(currentUser(), channelId);
+		};
+
+		$scope.delete = function(channelId) {
+			channels.delete(channelId).then(function() {
+				$state.go('home');
+			});
 		};
 
 		$scope.$watch('user.subscribedChannels', function() {
@@ -42425,8 +42432,10 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		$scope.description = '';
 
 		$scope.save = function() {
-			channels.create($scope.name, $scope.description, [currentUser()._id]).then(function(modelCreate) {
-				$state.go('channel.id', { channelId: modelCreate.model._id });
+			channels.create($scope.name, $scope.description, [currentUser()._id]).then(function(modelChange) {
+				// what if other creates were made? need to look for the proper model and get the id
+				var newChannel = modelChange.creates[0].model._id;
+				$state.go('channel.id', { channelId: newChannel });
 			});
 		};
 	}]);
@@ -42468,7 +42477,7 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 		}
 	}])
 
-	.factory('channels', ['$rootScope', 'sync', function($rootScope, sync) {
+	.factory('channels', ['$rootScope', 'sync', 'currentUser', function($rootScope, sync, currentUser) {
 		return {
 			get: function() {
 				return $rootScope.channels;
@@ -42488,13 +42497,17 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 
 			create: function(name, description, senders) {
 				var channel = new Channel({
-					_id: null,
 					name: name,
 					description: description,
-					senders: senders
+					senders: senders,
+					owner: currentUser()._id
 				});
 
 				return sync.create('channels', channel);
+			},
+
+			delete: function(id) {
+				return sync.delete('channels', id);
 			}
 		}
 	}]);
@@ -42556,6 +42569,7 @@ angular.module('tellemApp.socket', [])
 
 var ModelUpdateRequest = require('../../common/model/ModelUpdateRequest');
 var ModelCreateRequest = require('../../common/model/ModelCreateRequest');
+var ModelDeleteRequest = require('../../common/model/ModelDeleteRequest');
 var event = require('../../common/event');
 var Channel = require('../../common/model/Channel');
 
@@ -42563,107 +42577,125 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tell
 
 	// Code for listening constantly for updates to models on the server
 	.run(['$rootScope', 'socket', 'acks', 'currentUser', function($rootScope, socket, acks, currentUser) {
-		socket.on(event.MODEL_UPDATE, function(payload) {
-			var modelUpdate = payload.data;
-
-			// process the update
-			// how to decide where to process the update. depends on the collection
-			switch(modelUpdate.collection) {
+		var getCollection = function(name) {
+			switch(name) {
+				case 'channels':
+					return $rootScope.channels;
 				case 'users':
-					var thisUser = currentUser();
+					throw 'Tried to get users collection, but at the moment we only store one user';
+				default:
+					throw 'Unrecognized collection: ' + name;
+			}
+		};
 
-					if(modelUpdate.id === thisUser._id) {
-						// thisUser.subscribedChannels.push(update.data.subscribedChannels[0]);
-						// update was for the current user
-						Object.keys(modelUpdate.update).forEach(function(key) {
-							thisUser[key] = modelUpdate.update[key];
+		var setCollection = function(name, collection) {
+			switch(name) {
+				case 'channels':
+					$rootScope.channels = collection;
+					break;
+				case 'users':
+					throw 'Tried to get users collection, but at the moment we only store one user';
+				default:
+					throw 'Unrecognized collection: ' + name;
+			}
+		};
+
+		socket.on(event.DB_UPDATE, function(payload) {
+			console.log('got DB_UPDATE', payload);
+			var modelChange = payload.data;
+			var ack = payload._ack;
+
+			modelChange.updates.forEach(function(update) {
+				if(update.collection === 'users') {
+					var curr = currentUser();
+
+					if(curr._id === update.model._id) {
+						Object.keys(update.model).forEach(function(key) {
+							curr[key] = update.model[key];
 						});
 					}
+				} else {
+					throw 'Update collection ' + update.collection + ' not yet implemented.';
+				}
+			});
 
+			modelChange.creates.forEach(function(create) {
+				var collection = getCollection(create.collection);
+				var newCollection = collection.slice();
+				newCollection.push(create.model);
+				setCollection(create.collection, newCollection);
+			});
 
+			modelChange.deletes.forEach(function(deleteObj) {
+				var collection = getCollection(deleteObj.collection);
+				var index = collection.findIndex(function(obj) {
+					return obj._id === deleteObj.id;
+				});
 
-					
+				if(index > -1) {
+					var newCollection = collection.slice();
+					newCollection.splice(index, 1);
+					setCollection(deleteObj.collection, newCollection);
+				} else {
+					// something went wrong, the index wasn't in the collection
+					console.error('Tried to delete id', deleteObj.id, 'from collection', deleteObj.collection, 'but the id wasnt in the collection');
+				}
+			});
 
-					break;
-				default:
-					throw 'Unknown update collection: ' + collection;
-			}
+			acks.resolve(ack, modelChange);
 
-			acks.resolve(payload._ack, payload.data);
-
-			// as we are outside of any $scope, we must force an update on the root
-			$rootScope.$apply();
-			// acks.forEach(function(ack) {
-			// 	if(ack.ackIsForUpdate(update)) {
-			// 		console.log('update was an ack');
-			// 		ack.fn();
-			// 		acks.remove(ack);
-			// 	}
-			// });
-		});
-
-		socket.on(event.MODEL_CREATE, function(payload) {
-			var modelCreate = payload.data;
-
-			switch(modelCreate.collection) {
-				case 'channels':
-					var channel = new Channel(modelCreate.model);
-					var newChannels = $rootScope.channels.slice();
-					newChannels.push(channel);
-					$rootScope.channels = newChannels;
-
-					break;
-				default:
-					throw 'Unknown update collection: ' + modelCreate.collection;
-			}
-
-			acks.resolve(payload._ack, payload.data);
+			// a bit hacky, making the entire digest run. Maybe have updates
+			// done on ack.done
 			$rootScope.$apply();
 		});
 	}])
 
 	.factory('sync', ['socket', 'acks', '$q', function(socket, acks, $q) {
+		var emit = function(requestConstructor, event, params) {
+			var request = new requestConstructor(params);
+			var deferred = $q.defer();
+			console.log('emitting', request);
+			socket.emit(event, {
+				data: request,
+				_ack: acks.create(deferred)
+			});
+
+			return deferred.promise;
+		};
+
 		return {
 			update: function(collection, id, update) {
-				var request = new ModelUpdateRequest({
+				return emit(ModelUpdateRequest, event.MODEL_UPDATE_REQUEST, {
 					id: id,
 					collection: collection,
 					update: update
 				});
-				var deferred = $q.defer();
-
-				socket.emit(event.MODEL_UPDATE_REQUEST, {
-					data: request,
-					_ack: acks.create(deferred)
-				});
-
-				return deferred.promise;
 			},
 
 			create: function(collection, model) {
-				var request = new ModelCreateRequest({
+				return emit(ModelCreateRequest, event.MODEL_CREATE_REQUEST, {
 					collection: collection,
 					model: model
 				});
-				var deferred = $q.defer();
+			},
 
-				socket.emit(event.MODEL_CREATE_REQUEST, {
-					data: request,
-					_ack: acks.create(deferred)
+			delete: function(collection, id) {
+				return emit(ModelDeleteRequest, event.MODEL_DELETE_REQUEST, {
+					collection: collection,
+					id: id
 				});
-
-				return deferred.promise;
 			}
 		}
 	}]);
-},{"../../common/event":61,"../../common/model/Channel":63,"../../common/model/ModelCreateRequest":64,"../../common/model/ModelUpdateRequest":65}],61:[function(require,module,exports){
+},{"../../common/event":61,"../../common/model/Channel":63,"../../common/model/ModelCreateRequest":64,"../../common/model/ModelDeleteRequest":65,"../../common/model/ModelUpdateRequest":66}],61:[function(require,module,exports){
 module.exports = {
 	BULLETIN_REQUEST: 'bulletinRequest',
 	BULLETIN: 'bulletin',
 	MODEL_UPDATE_REQUEST: 'modelUpdateRequest',
-	MODEL_UPDATE: 'modelUpdate',
 	MODEL_CREATE_REQUEST: 'modelCreateRequest',
-	MODEL_CREATE: 'modelCreate'
+	MODEL_DELETE_REQUEST: 'modelDeleteRequest',
+
+	DB_UPDATE: 'dbUpdate'
 };
 },{}],62:[function(require,module,exports){
 var BulletinRequest = function(params) {
@@ -42678,6 +42710,7 @@ var Channel = function(params) {
 	this.name = params.name;
 	this.description = params.description;
 	this.senders = params.senders;
+	this.owner = params.owner;
 };
 
 module.exports = Channel;
@@ -42689,6 +42722,13 @@ var ModelCreateRequest = function(params) {
 
 module.exports = ModelCreateRequest;
 },{}],65:[function(require,module,exports){
+var ModelDeleteRequest = function(params) {
+	this.id = params.id;
+	this.collection = params.collection;
+};
+
+module.exports = ModelDeleteRequest;
+},{}],66:[function(require,module,exports){
 var ModelUpdateRequest = function(params) {
 	this.id = params.id;
 	this.collection = params.collection;
@@ -42696,9 +42736,7 @@ var ModelUpdateRequest = function(params) {
 };
 
 module.exports = ModelUpdateRequest;
-},{}],66:[function(require,module,exports){
-arguments[4][63][0].apply(exports,arguments)
-},{"dup":63}],67:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 var User = function(params) {
 	this._id = params._id;
 	this.username = params.username;

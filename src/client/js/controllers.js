@@ -12,6 +12,7 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 			// of having to update everything
 
 			var updateFn = function(newValue, oldValue) {
+				console.log('updateFn');
 				$scope.subscribedChannels = users.getSubscribedChannels(user);
 				$scope.availableChannels = channels.get().filter(function(channel) {
 					return !users.isSubscribedToChannel(user, channel);
@@ -57,11 +58,12 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		};
 	}])
 
-	.controller('ChannelCtrl', ['$stateParams', '$scope', '$rootScope', 'channels', 'users', 'currentUser', function($stateParams, $scope, $rootScope, channels, users, currentUser) {
+	.controller('ChannelCtrl', ['$stateParams', '$scope', '$rootScope', '$state', 'channels', 'users', 'currentUser', function($stateParams, $scope, $rootScope, $state, channels, users, currentUser) {
 		var channelId = $stateParams.channelId;
 
 		$scope.channel = channels.getById(channelId);
 		$rootScope.activeChannelId = channelId;
+		$scope.isOwner = $scope.channel.owner === currentUser()._id;
 
 		$scope.unsubscribe = function(channelId) {
 			users.unsubscribeFromChannel(currentUser(), channelId);
@@ -69,6 +71,12 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 
 		$scope.subscribe = function(channelId) {
 			users.subscribeToChannel(currentUser(), channelId);
+		};
+
+		$scope.delete = function(channelId) {
+			channels.delete(channelId).then(function() {
+				$state.go('home');
+			});
 		};
 
 		$scope.$watch('user.subscribedChannels', function() {
@@ -83,8 +91,10 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		$scope.description = '';
 
 		$scope.save = function() {
-			channels.create($scope.name, $scope.description, [currentUser()._id]).then(function(modelCreate) {
-				$state.go('channel.id', { channelId: modelCreate.model._id });
+			channels.create($scope.name, $scope.description, [currentUser()._id]).then(function(modelChange) {
+				// what if other creates were made? need to look for the proper model and get the id
+				var newChannel = modelChange.creates[0].model._id;
+				$state.go('channel.id', { channelId: newChannel });
 			});
 		};
 	}]);
