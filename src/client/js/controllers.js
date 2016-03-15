@@ -2,7 +2,7 @@
 
 var BulletinRequest = require('../../common/model/BulletinRequest');
 
-angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins'])
+angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins', 'localytics.directives'])
 
 	.controller('SideListCtrl', ['$rootScope', '$scope', 'users', 'channels', 'currentUser',
 		function($rootScope, $scope, users, channels, currentUser) {
@@ -12,7 +12,6 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 			// of having to update everything
 
 			var updateFn = function(newValue, oldValue) {
-				console.log('updateFn');
 				$scope.subscribedChannels = users.getSubscribedChannels(user);
 				$scope.availableChannels = channels.get().filter(function(channel) {
 					return !users.isSubscribedToChannel(user, channel);
@@ -39,19 +38,24 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 
 		if(Array.isArray(preDefinedChannel)) {
 			console.log('Send page doesnt yet support multiple channels in the URL (', preDefinedChannel ,') - picked the first one.');
-			$scope.channel = channels.getById(preDefinedChannel[0]).name;
+			$scope.selectedChannels = [channels.getById(preDefinedChannel[0]).name];
 		} else if(preDefinedChannel === undefined) {
-			$scope.channel = '';
+			$scope.selectedChannels = [];
 		} else {
-			$scope.channel = channels.getById(preDefinedChannel).name;
+			$scope.selectedChannels = [channels.getById(preDefinedChannel).name];
 		}
-		
-		$scope.message = 'test';
+
+		$scope.availableChannels = channels.get().map(function(channel) {
+			return channel.name;
+		});
+
+
+		$scope.message = '';
 
 		$scope.send = function() {
 			var bulletinRequest = new BulletinRequest({
 				message: $scope.message,
-				channelId: channels.getByName($scope.channel)._id
+				channelId: channels.getByName($scope.selectedChannels[0])._id
 			});
 
 			bulletins.send(bulletinRequest);

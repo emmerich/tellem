@@ -2,10 +2,6 @@
 
 var event = require('../../common/event');
 
-/*
-	The bulletins modules handle sending bulletin requests from client to server.
- */
-
 angular.module('tellemApp.bulletins', ['tellemApp.socket', 'tellemApp.notifier'])
 
 	.run(['socket', 'notifier', function(socket, notifier) {

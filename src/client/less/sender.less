@@ -1,66 +1,73 @@
-@send-container-width: 800px;
-@send-form-width: @send-container-width / 3; // 33%
-@previously-send-width: @send-form-width * 2; // 66%
-@padding-between-form-and-previous: 30px;
+@previously-sent-container-width: 0px;
+@bulletin-content-width: 400px;
 
-section.send-container {
-	width: @send-container-width;
+.send-container {
+	min-width: @previously-sent-container-width + @bulletin-content-width;
 }
 
-section.create-container {
-	padding-top: 30px;
-
-	> section {
-		// width: @send-container-width / 2;
-		display: inline-block;
-		vertical-align: top;
-		box-sizing: border-box;
-	}
+.send-inner-container {
+	overflow: hidden;
 }
 
-section.send-form {
-	width: @send-form-width;
-	padding-right: @padding-between-form-and-previous / 2;
+.create-new-bulletin-container {
+	overflow: hidden;
+
+	margin: 0 auto;
+	width: @bulletin-content-width;
+	min-width: @bulletin-content-width;
 }
 
-section.previously-sent {
-	width: @previously-send-width;
-	padding-left: @padding-between-form-and-previous / 2;
-
-	> section {
-		display: inline-block;
-		width: 50%;
-	}
-
-	h4 {
-		margin-top: 0;
-		margin-bottom: 1.2em;
-	}
+.use-previously-sent {
+	float: right;
+	width: @previously-sent-container-width;
+	min-width: @previously-sent-container-width;
+	background-color: red;
 }
 
-h3.previously-send-header {
-	margin-bottom: 0;
+// content form
+@change-icon-width: 64px;
+@change-icon-height: 64px;
+@padding-between-icon-and-message: 6px;
+
+@form-input-border: 1px solid #aaa;
+
+.create-new-bulletin-form {
+	overflow: hidden;
 }
 
-label.send-label {
-	font-size: 0.8em;
+.create-new-bulletin-change-icon {
+	float: left;
+	width: @change-icon-width;
+	margin-right: @padding-between-icon-and-message / 2;
 }
 
-.send-input {
+.create-new-bulletin-message {
+	overflow: hidden;
+	margin-left: @padding-between-icon-and-message / 2;
+}
+
+.create-new-bulletin-form-label {
 	display: block;
-	width: 100%;
+	height: 15px;
+	font-size: 0.9em;
+}
+
+.create-new-bulletin-change-icon-img {
+	height: @change-icon-height;
+	width: @change-icon-width;
+	border: @form-input-border;
 	box-sizing: border-box;
 }
 
-textarea.message-input {
-	height: 4em;
+.create-new-bulletin-message-input {
+	width: 100%;
+	box-sizing: border-box;
+	height: @change-icon-height;
+	border: @form-input-border;
+	resize: none;
 }
 
-.send-buttons {
-	overflow: hidden;
-
-	> input {
-		float: right;
-		margin-left: 3px;
-	}
+// buttons
+.create-new-bulletin-send-button {
+	float: right;
 }

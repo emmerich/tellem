@@ -1,42 +1,49 @@
 <section class='send-container centre-section-container'>
 	<header class='centre-header'>
-		<h2>Send</h2>
+		<h2>Send Bulletin</h2>
 	</header>
 
 	<section class='channel-selection'>
-		<h3>Select target channel</h3>
+		<h3>Target Channel</h3>
+
 		<div class='send-channel'>
-			<input class='send-input' name='channel' type='text' ng-model='channel'>
+			<select chosen
+					multiple
+					width="'100%'"
+					max-selected-options="1"
+					placeholder-text-multiple="'Select some channels'"
+					ng-model="selectedChannels"
+        			ng-options="c for c in availableChannels">
+        		<option value=""></option>
+			</select>
 		</div>
 	</section>
 	
 
-	<section class='create-container'>
-		<section class='send-form'>
-			<header>
-				<h3>Create a new bulletin..</h3>
-			</header>
+	<section class='send-inner-container'>
+		<h3>Bulletin Content</h3>
 
-			<div class='send-message'>
-				<label class='send-label' for='message'>Message</label>
-				<textarea rows='1' class='send-input message-input' name='message' ng-model='message'></textarea>
+		<!-- <section class='use-previously-sent'>
+		</section> --><section class='create-new-bulletin-container'>
+			<!-- new bulletin form -->
+			<div class='create-new-bulletin-form'>
+				<!-- change bulletin icon -->
+				<div class='create-new-bulletin-change-icon'>
+					<label class='create-new-bulletin-form-label'>Icon</label>
+					<img class='create-new-bulletin-change-icon-img'src='/img/icon.png' />
+				</div>
+
+				<!-- change bulletin message -->
+				<div class='create-new-bulletin-message'>
+					<label class='create-new-bulletin-form-label' for='message'>Message</label>
+					<textarea class='create-new-bulletin-message-input' rows='1' name='message' ng-model='message'></textarea>
+				</div>
 			</div>
 
-			<div class='send-buttons'>	
-				<input value='Send' name='submit' type='button' ng-click='send()'>
+			<!-- new bulletin buttons -->
+			<div class='create-new-bulletin-buttons'>
+				<input class='create-new-bulletin-send-button' type='button' value='Send' ng-click='send()'>
 			</div>
-		</section><section class='previously-sent'>
-			<header>
-				<h3 class='previously-send-header'>.. or use one previously sent ..</h3>
-			</header>
-
-			<section class='user-previously-sent'>
-				<h4>.. by you</h4>
-				<div class='notification-list'></div>
-			</section><section class='channel-previously-sent'>
-				<h4>.. on this channel</h4>
-				<div class='notification-list'></div>
-			</section>
 		</section>
 	</section>
 </section>

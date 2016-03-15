@@ -19,6 +19,7 @@
 @outer-padding: 10px;
 
 @import (less) "mixins.less";
+@import (inline) "chosen.css";
 
 // Application-wide and root-level layout styles
 
@@ -45,6 +46,10 @@ h1 {
 	padding-left: @outer-padding;
 	padding-top: 2px;
 	padding-bottom: 2px;
+}
+
+h2 {
+	margin: 0;
 }
 
 header.main-header {
@@ -75,10 +80,13 @@ section.main-container {
 
 section.centre-pane {
 	margin-left: @left-side-bar-width + (2* @side-bar-horizontal-padding);
+	background-color: grey;
 }
 
 section.centre-section-container {
-	padding: 10px 10px;
+	padding: 20px 20px;
+	margin: 0 10px;
+	background-color: white;
 }
 
 

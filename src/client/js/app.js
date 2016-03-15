@@ -3,8 +3,12 @@
 // AngularJS packages are not CommonJS packages, so we don't have to assign
 // a variable to anything. Actually we just require them, they come in and
 // modify the global object.
+require('jquery')
 require('angular');
 require('angular-ui-router');
+
+require('angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.min');
+require('angular-chosen-localytics/dist/angular-chosen.min');
 
 // Typically this is what you would see in the index.html file, but we can load
 // them using CommonJS. Any order as Angular takes care of the actual dependency
