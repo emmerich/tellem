@@ -1,17 +1,20 @@
 <section class='new-channel-container centre-section-container'>
 	<header class='centre-header'>
-		<h2>Add New Channel</h2>
+		<h3>Add Channel</h3>
+		<p>Channels are the system through which bulletins are sent. Users can subscribe and unsubscribe to the channels they are interested in.</p>
+		<p>Use the form below to create a new channel, giving it a name and description.</p>
 	</header>
 
 	<section class='new-channel-form'>
-		<label for='name'>Name</label>
-		<input type='text' name='name' ng-model='name'>
-		<label for='description'>Description</label>
-		<textarea name='description' ng-model='description'></textarea>
-	</section>
-
-	<section class='new-channel-buttons'>
-		<input type='button' value='Create' ng-click='save()'>
+		<div class="form-group">
+			<label for="name">Channel Name</label>
+			<input type="text" class="form-control" ng-model='name' placeholder="Channel Name">
+		</div>
+		<div class="form-group">
+			<label for="description">Description</label>
+			<textarea class="form-control" ng-model='description' placeholder="Description"></textarea>
+		</div>
+		<button type="submit" class="btn btn-success" ng-click='save()'>Submit</button>
 	</section>
 
 </section>

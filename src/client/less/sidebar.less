@@ -1,10 +1,11 @@
 @channel-list-item-left-padding: 20px;
+@side-list-outer-padding: 10px;
 @cli-button-width: 140px;
 
 section.side-list {
 	background-color: @side-list-colour;
 	color: @fc-side-list-colour;
-	padding: 0 10px;
+	padding: 0 @side-list-outer-padding;
 	width: @left-side-bar-width;
 	float: left;
 }
@@ -20,14 +21,13 @@ input.send-notification-button {
 }
 
 header.channels-header {
-	font-size: 1.5em;
 	text-align: center;
 	position: relative;
 }
 
-span.add-new-channel {
+span.add-new-channel-button {
 	position: absolute;
-	top: 0;
+	top: 2px;
 	right: 5px;
 	cursor: pointer;
 }
@@ -40,24 +40,42 @@ ul.channel-list {
 }
 
 li.channel-list-item {
+	position: relative;
+
 	> div {
 		display: inline-block;
 		padding: 3px 0;
 	}
 }
 
-li.active {
+.channel-list-item-bg {
+	position: absolute;
+	height: 100%;
+	left: 0 - @channel-list-item-left-padding - @side-list-outer-padding;
+	right: 0 - @side-list-outer-padding;
+	z-index: 0;
+}
+
+.channel-list-item-bg.active {
 	background-color: @base-colour;
 }
 
 div.cli-button {
-	width: @cli-button-width;
+	float: right;
+
+    > span {
+    	margin-right: 5px;
+    	top: 2px;
+    	cursor: pointer;
+    }
 }
 
 div.cli-name {
 	width: @left-side-bar-width -
 		@channel-list-item-left-padding -
 		@cli-button-width;
+	z-index: 2;
+	position: relative;
 }
 
 input.cli-button-single {

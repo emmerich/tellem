@@ -1,4 +1,7 @@
 @import (inline) "normalize.css";
+@import (less) "/bootstrap/bootstrap.less";
+@import (less) "mixins.less";
+@import (less) "bootstrap-chosen.less";
 
 @application-font-family: Arial, sans-serif;
 
@@ -13,20 +16,14 @@
 
 // Widths
 @header-height: 35px;
-@left-side-bar-width: 250px;
+@left-side-bar-width: 270px;
 @side-bar-horizontal-padding: 10px;
 
 @outer-padding: 10px;
 
-@import (less) "mixins.less";
-@import (inline) "chosen.css";
-
 // Application-wide and root-level layout styles
 
 body {
-	// Use a percentage font-size here so all fonts are correctly zoomed.
-	// http://kyleschaeffer.com/development/css-font-size-em-vs-px-vs-pt-vs/
-	font-size: 80%;
 	height: 100%;
 	width: 100%;
 	position: relative;
@@ -55,6 +52,7 @@ h2 {
 header.main-header {
 	background-color: @base-colour;
 	height: @header-height;
+	cursor: pointer;
 }
 
 section.main {
@@ -79,12 +77,15 @@ section.main-container {
 }
 
 section.centre-pane {
-	margin-left: @left-side-bar-width + (2* @side-bar-horizontal-padding);
+	margin-left: @left-side-bar-width;
 	background-color: grey;
 }
 
 section.centre-section-container {
-	padding: 20px 20px;
+	padding-top: 1px;
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-bottom: 20px;
 	margin: 0 10px;
 	background-color: white;
 }
@@ -93,5 +94,6 @@ section.centre-section-container {
 @import (less) "sidebar.less";
 @import (less) "sender.less";
 @import (less) "channel.less";
+@import (less) "channel.new.less";
 
 

@@ -69,6 +69,8 @@ app.use(express.static(__dirname + '/static'));
 
 //dev only
 app.use(express.static(__dirname + '/../client'));
+app.use('/bootstrap', express.static(__dirname + '/../../node_modules/bootstrap/less'));
+app.use('/fonts', express.static(__dirname + '/../../node_modules/bootstrap/fonts'));
 
 app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, store: sessionStore }));
 app.use(passport.initialize());

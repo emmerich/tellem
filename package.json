@@ -14,6 +14,7 @@
     "angular-route": "^1.5.0",
     "angular-ui-router": "^0.2.18",
     "body-parser": "^1.15.0",
+    "bootstrap": "^3.3.6",
     "connect-ensure-login": "^0.1.1",
     "connect-mongo": "^1.1.0",
     "cookie-parser": "^1.4.1",

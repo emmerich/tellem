@@ -1,18 +1,17 @@
 <section class='channel-container centre-section-container'>
 	<header class='centre-header'>
-		<h2 class='channel-header-name'>{{channel.name}}</h2>
-		<div class='channel-header-buttons'>
-			<input type='button' ui-sref='send({ channel: channel._id })' value='Send Bulletin'>
-			<input type='button' ng-if='subscribed' ng-click='unsubscribe(channel._id)' value='Unsubscribe'>
-			<input type='button' ng-if='!subscribed' ng-click='subscribe(channel._id)' value='Subscribe'>
-			<input type='button' ng-if='isOwner' ng-click='delete(channel._id)' value='Delete'>
-		</div>
+		<h3>{{channel.name}}</h3>
 	</header>
 
 	<section class='channel-info'>
 		<p>{{channel.description}}</p>
 	</section>
 
-
+	<div class='channel-header-buttons'>
+		<button type='button' ui-sref='send({ channel: channel._id })' class='btn btn-default'>Send Bulletin</button>
+		<button class='btn btn-default' type='button' ng-if='subscribed' ng-click='unsubscribe(channel._id)'>Unsubscribe</button>
+		<button class='btn btn-default' type='button' ng-if='!subscribed' ng-click='subscribe(channel._id)'>Subscribe</button>
+		<button class='btn btn-default' type='button' ng-if='isOwner' ng-click='delete(channel._id)'>Delete Channel</button>
+	</div>
 </section>
 

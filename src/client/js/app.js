@@ -10,6 +10,8 @@ require('angular-ui-router');
 require('angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.min');
 require('angular-chosen-localytics/dist/angular-chosen.min');
 
+require('bootstrap');
+
 // Typically this is what you would see in the index.html file, but we can load
 // them using CommonJS. Any order as Angular takes care of the actual dependency
 // injection, here we're just making sure they're in the file.

@@ -5,8 +5,13 @@
 	min-width: @previously-sent-container-width + @bulletin-content-width;
 }
 
+.channel-selection {
+	padding-top: 10px;
+}
+
 .send-inner-container {
 	overflow: hidden;
+	padding-top: 20px;
 }
 
 .create-new-bulletin-container {
@@ -55,19 +60,21 @@
 .create-new-bulletin-change-icon-img {
 	height: @change-icon-height;
 	width: @change-icon-width;
-	border: @form-input-border;
-	box-sizing: border-box;
 }
 
 .create-new-bulletin-message-input {
 	width: 100%;
 	box-sizing: border-box;
-	height: @change-icon-height;
-	border: @form-input-border;
+	height: @change-icon-height !important;
 	resize: none;
 }
 
 // buttons
+.create-new-bulletin-buttons {
+	margin-top: 5px;
+	overflow: hidden;
+}
+
 .create-new-bulletin-send-button {
 	float: right;
 }

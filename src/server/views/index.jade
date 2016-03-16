@@ -4,7 +4,7 @@ html(lang='en', ng-app='tellemApp')
     title='tellem'
     link(rel='stylesheet/less', type='text/css', href='/less/styles.less')
   body
-    header(class='main-header', ng-include="'view/header.html'")
+    header(class='main-header', ng-include="'view/header.html'", ui-sref='home')
     section(class='main')
         section(class='main-container')
             section(class='side-list', ng-controller='SideListCtrl', ng-include="'view/sidebar.html'")

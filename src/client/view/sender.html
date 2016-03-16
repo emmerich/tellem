@@ -1,10 +1,12 @@
 <section class='send-container centre-section-container'>
 	<header class='centre-header'>
-		<h2>Send Bulletin</h2>
+		<h3>Send Bulletin</h3>
+		<p>Bulletins are sent via channels. Subscribers to that channel receive the bulletin via their chosen medium (e.g. a desktop notification).</p>
+		<p>Use the form below to select the channel and create the content of the bulletin.</p>
 	</header>
 
 	<section class='channel-selection'>
-		<h3>Target Channel</h3>
+		<h5>Target Channel</h5>
 
 		<div class='send-channel'>
 			<select chosen
@@ -21,7 +23,7 @@
 	
 
 	<section class='send-inner-container'>
-		<h3>Bulletin Content</h3>
+		<h5>Bulletin Content</h5>
 
 		<!-- <section class='use-previously-sent'>
 		</section> --><section class='create-new-bulletin-container'>
@@ -30,19 +32,20 @@
 				<!-- change bulletin icon -->
 				<div class='create-new-bulletin-change-icon'>
 					<label class='create-new-bulletin-form-label'>Icon</label>
-					<img class='create-new-bulletin-change-icon-img'src='/img/icon.png' />
+					<img class='create-new-bulletin-change-icon-img img-thumbnail'src='/img/icon.png' />
 				</div>
 
 				<!-- change bulletin message -->
 				<div class='create-new-bulletin-message'>
 					<label class='create-new-bulletin-form-label' for='message'>Message</label>
-					<textarea class='create-new-bulletin-message-input' rows='1' name='message' ng-model='message'></textarea>
+					<textarea class='form-control create-new-bulletin-message-input' rows='1' name='message' ng-model='message'></textarea>
 				</div>
 			</div>
 
 			<!-- new bulletin buttons -->
 			<div class='create-new-bulletin-buttons'>
-				<input class='create-new-bulletin-send-button' type='button' value='Send' ng-click='send()'>
+				<button type="submit" class="btn btn-success create-new-bulletin-send-button" ng-click='send()'>Send</button>
+				<!-- <input class='' type='button' value='Send' ng-click='send()'> -->
 			</div>
 		</section>
 	</section>
