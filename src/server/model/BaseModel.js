@@ -6,7 +6,7 @@ var BaseModel = function(params) {
 	this.dbEmitter = params.dbEmitter;
 };
 
-BaseModel.prototype.create = function(createRequest, ack) {
+BaseModel.prototype.create = function(createRequest, ack, sender) {
 	var _this = this;
 	var p = this.db.create(this.model, createRequest.model);
 	
@@ -26,7 +26,7 @@ BaseModel.prototype.getAll = function() {
 	return this.db.getAll(this.model);
 };
 
-BaseModel.prototype.update = function(updateRequest, ack) {
+BaseModel.prototype.update = function(updateRequest, ack, sender) {
 	var _this = this;
 	var p = this.db.update(this.model, updateRequest.id, updateRequest.update);
 	
@@ -38,7 +38,7 @@ BaseModel.prototype.update = function(updateRequest, ack) {
 	return p;
 };
 
-BaseModel.prototype.delete = function(deleteRequest, ack) {
+BaseModel.prototype.delete = function(deleteRequest, ack, sender) {
 	var _this = this;
 	var p = this.db.delete(this.model, deleteRequest.id);
 

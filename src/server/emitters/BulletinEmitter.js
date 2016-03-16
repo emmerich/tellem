@@ -24,7 +24,8 @@ BulletinEmitter.prototype.emit = function(bulletinRequest, sender) {
 
 	this.channels.get(bulletin.channelId).then(function(channel) {
 		// check if sender is on the list
-		if(channel.senders.indexOf(sender._id) > -1) {
+		if(sender._id === 'tellem.bot' ||
+			channel.senders.indexOf(sender._id) > -1) {
 
 			_this.connections.forEach(function(connection) {
 				console.log('getting user', connection.user._id);
@@ -44,8 +45,6 @@ BulletinEmitter.prototype.emit = function(bulletinRequest, sender) {
 };
 
 BulletinEmitter.prototype._userIsSubscribed = function(user, channelId) {
-	console.log('user', user);
-	console.log('channelId', channelId);
 	return user.subscribedChannels.indexOf(channelId) > -1;
 };
 

@@ -81,8 +81,6 @@ io.use(passportSocketIo.authorize({
   store:       sessionStore
 }));
 
-
-
 var bulletinEmitter = new BulletinEmitter({
 	channels: channels,
 	users: users
@@ -112,4 +110,6 @@ io.on('connection', function(socket) {
 require('./routes')(app, passport, channels);
 
 // Start the server.
-http.listen(3000, function() {});
+http.listen(3000, function() {
+	require('./tellembot')(bulletinEmitter);
+});

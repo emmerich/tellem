@@ -34,7 +34,7 @@ ConnectionManager.prototype._handleCRUD = function(sender, operation, payload) {
 	var request = payload.data;
 	var db = this._getDB(request.collection);
 
-	db[operation](request, payload._ack);
+	db[operation](request, payload._ack, sender);
 };
 
 ConnectionManager.prototype._getDB = function(collection) {

@@ -20,7 +20,6 @@ DefaultEmitter.prototype.remove = function(connection) {
  * @return {[type]}           [description]
  */
 DefaultEmitter.prototype.emit = function(data, ack) {
-	console.log('emitting', data, ack);
 	this.connections.forEach(function(connection) {
 		var payload = {
 			data: data

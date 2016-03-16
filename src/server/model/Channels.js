@@ -2,6 +2,7 @@ var inherits = require('util').inherits;
 var BaseModel = require('./BaseModel');
 var ModelChange = require('./ModelChange');
 var collections = require('../../common/collections');
+var q = require('q');
 
 var Channels = function(params) {
 	BaseModel.call(this, params);
@@ -10,29 +11,39 @@ var Channels = function(params) {
 };
 inherits(Channels, BaseModel);
 
-Channels.prototype.delete = function(deleteRequest, ack) {
+Channels.prototype.delete = function(deleteRequest, ack, sender) {
 	var _this = this;
-	var emitGroup = new ModelChange();
+	var deferred = q.defer();
 
 	console.log('Delete channel', deleteRequest.id);
 
-	return this.db.delete(this.model, deleteRequest.id).then(function() {
-		console.log('Delete was fine, deleting subscriptions.');
-		emitGroup.delete(collections.CHANNELS, deleteRequest.id);
+	this.db.findOne(this.model, { _id: deleteRequest.id }).then(function(channelToDelete) {
+		if(channelToDelete.owner.equals(sender._id)) {
+			var emitGroup = new ModelChange();
 
-		var p = _this.users.deleteAllSubscriptionsForChannel(deleteRequest.id);
-		
-		p.then(function(users) {
-			console.log('all subs deleted, affected users:', users);
-			users.forEach(function(user) {
-				emitGroup.update(collections.USERS, user);
+			_this.db.delete(_this.model, deleteRequest.id).then(function() {
+				console.log('deleted model');
+				emitGroup.delete(collections.CHANNELS, deleteRequest.id);
+
+				var p = _this.users.deleteAllSubscriptionsForChannel(deleteRequest.id);
+				
+				p.then(function(users) {
+					users.forEach(function(user) {
+						emitGroup.update(collections.USERS, user);
+					});
+
+					_this.dbEmitter.emit(emitGroup, ack);
+					console.log('deleted all', users);
+					deferred.resolve(users);
+				});
 			});
-console.log('emitting emitGroup', emitGroup);
-			_this.dbEmitter.emit(emitGroup, ack);
-		});
-
-		return p;
+		} else {
+			// no permission to delete the channel
+			deferred.reject("NO_PERMISSION");
+		}
 	});
+
+	return deferred.promise;
 };
 
 module.exports = Channels;
