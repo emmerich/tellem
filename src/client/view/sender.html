@@ -5,6 +5,12 @@
 		<p>Use the form below to select the channel and create the content of the bulletin.</p>
 	</header>
 
+	<div class="alert alert-danger alert-dismissable" ng-if="hasError" role="alert">
+		<ul>
+			<li ng-repeat="error in errorMessages">{{error}}</li>
+		</ul>
+	</div>
+
 	<section class='channel-selection'>
 		<h5>Target Channel</h5>
 

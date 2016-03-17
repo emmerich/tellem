@@ -54610,14 +54610,32 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 
 
 		$scope.message = '';
+		$scope.hasError = false;
 
 		$scope.send = function() {
-			var bulletinRequest = new BulletinRequest({
-				message: $scope.message,
-				channelId: channels.getByName($scope.selectedChannels[0])._id
-			});
+			var channel = channels.getByName($scope.selectedChannels[0]);
+			var message = $scope.message;
+			$scope.hasError = false;
+			$scope.errorMessages = [];
 
-			bulletins.send(bulletinRequest);
+			if(channel == null) {
+				$scope.errorMessages.push('No channel selected. Please add a target channel for the bulletin.');
+				$scope.hasError = true;
+			}
+
+			if(message.trim() === '') {
+				$scope.errorMessages.push('Empty message field. Please enter a message.');
+				$scope.hasError = true;
+			}
+
+			if(!$scope.hasError) {
+				var bulletinRequest = new BulletinRequest({
+					message: message,
+					channelId: channel._id
+				});
+
+				bulletins.send(bulletinRequest);
+			}
 		};
 	}])
 
