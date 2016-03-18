@@ -24,23 +24,15 @@ BulletinEmitter.prototype.emit = function(bulletinRequest, sender) {
 
 	this.channels.get(bulletin.channelId).then(function(channel) {
 		// check if sender is on the list
-		if(sender._id === 'tellem.bot' ||
-			channel.senders.indexOf(sender._id) > -1) {
-
-			_this.connections.forEach(function(connection) {
-				console.log('getting user', connection.user._id);
-				_this.users.get(connection.user._id).then(function(user) {
-					console.log('got user', user, bulletin, _this._userIsSubscribed);
-					if(_this._userIsSubscribed(user, bulletin.channelId)) {
-						connection.socket.emit(event.BULLETIN, bulletin);
-					} else {
-						console.log('User', connection.user.username, 'is not subscribed to', channel.name);
-					}	
-				});
+		_this.connections.forEach(function(connection) {
+			_this.users.get(connection.user._id).then(function(user) {
+				if(_this._userIsSubscribed(user, bulletin.channelId)) {
+					connection.socket.emit(event.BULLETIN, bulletin);
+				} else {
+					console.log('User', connection.user.username, 'is not subscribed to', channel.name);
+				}	
 			});
-		} else {
-			console.log('Sender', sender.username, 'cannot send to channel', channel.name);
-		}
+		});
 	})	
 };
 

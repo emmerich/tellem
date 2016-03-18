@@ -1,8 +1,19 @@
 'use strict';
 
 var BulletinRequest = require('../../common/model/BulletinRequest');
+require('html5-desktop-notifications');
 
 angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins', 'localytics.directives'])
+
+	.controller('HomeCtrl', ['$scope', function($scope) {
+		$scope.permissionLevel = notify.permissionLevel();
+		$scope.DEFAULT = notify.PERMISSION_DEFAULT;
+		$scope.DENIED = notify.PERMISSION_DENIED;
+
+		$scope.requestPermission = function() {
+			notify.requestPermission();
+		};
+	}])
 
 	.controller('SideListCtrl', ['$rootScope', '$scope', 'users', 'channels', 'currentUser',
 		function($rootScope, $scope, users, channels, currentUser) {
@@ -84,6 +95,12 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		var channelId = $stateParams.channelId;
 
 		$scope.channel = channels.getById(channelId);
+
+		if($scope.channel === null) {
+			$state.go('channel.404');
+			return;
+		}
+
 		$rootScope.activeChannelId = channelId;
 		$scope.isOwner = $scope.channel.owner === currentUser()._id;
 

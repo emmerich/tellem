@@ -8,10 +8,10 @@
 	</section>
 
 	<div class='channel-header-buttons'>
-		<button type='button' ui-sref='send({ channel: channel._id })' class='btn btn-default'>Send Bulletin</button>
-		<button class='btn btn-default' type='button' ng-if='subscribed' ng-click='unsubscribe(channel._id)'>Unsubscribe</button>
-		<button class='btn btn-default' type='button' ng-if='!subscribed' ng-click='subscribe(channel._id)'>Subscribe</button>
-		<button class='btn btn-default' type='button' ng-if='isOwner' ng-click='delete(channel._id)'>Delete Channel</button>
+		<button type='button' ui-sref='send({ channel: channel._id })' class='btn btn-primary'>Send Bulletin</button>
+		<button class='btn btn-primary' type='button' ng-if='subscribed' ng-click='unsubscribe(channel._id)'>Unsubscribe</button>
+		<button class='btn btn-primary' type='button' ng-if='!subscribed' ng-click='subscribe(channel._id)'>Subscribe</button>
+		<button class='btn btn-primary' type='button' ng-if='isOwner' ng-click='delete(channel._id)'>Delete Channel</button>
 	</div>
 </section>
 

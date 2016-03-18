@@ -1,9 +1,14 @@
-<section class='home-container centre-section-container'>
+<section class='home-container centre-section-container' ng-controller="HomeCtrl">
 	<header class='centre-header'>
 		<h3>Welcome to tellem</h3>
 	</header>
 
-	<seection>
+	<section class="alert alert-warning" ng-if='permissionLevel === DEFAULT'>tellem needs your permission to display desktop notifications. Please <a ng-click='requestPermission()'>click here</a> to allow.
+	</section>
+
+	<section class="alert alert-danger" ng-if='permissionLevel === DENIED'>You have blocked desktop notifications for tellem. You will not receive any desktop notifications. Please adjust your browser settings to re-enable notifications.</section>
+
+	<section>
 		<p>Thank you for your interest in tellem. This is a demonstration of the core functionality of tellem - real-time, channel-based notifications.</p>
 		<h4>Using the Demo</h4>
 		<p>The demo is currently running on development infrastructure, so <strong>avoid sending any personal data</strong> via tellem for the moment. Besides that, feel free to play around.</p>

@@ -20,6 +20,7 @@
     "cookie-parser": "^1.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "html5-desktop-notifications": "^1.0.0",
     "jade": "^1.11.0",
     "jquery": "^2.2.1",
     "less": "^2.6.1",

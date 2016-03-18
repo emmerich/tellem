@@ -8,24 +8,24 @@
 <section class='subscribed-channels side-list-item'>
     <header class='channel-list-header'><h5>Subscribed</h5></header>
     <ul class='channel-list'>
-        <li class='channel-list-item' ng-repeat='channel in subscribedChannels' >
+        <li class='channel-list-item' ui-sref='channel.id({channelId: channel._id})' ng-repeat='channel in subscribedChannels' >
             <div class='channel-list-item-bg' ng-class='{ active: activeChannelId === channel._id }'></div> 
-            <div class='cli-name'>{{channel.name}}</div><div class='cli-button'>
+            <div class='cli-name'>{{channel.name}}</div><!-- <div class='cli-button'>
                 <span class="glyphicon glyphicon-info-sign" ui-sref='channel.id({channelId: channel._id})' aria-hidden="true"></span>
                 <span class="glyphicon glyphicon-star" ng-click='unsubscribe(channel._id)' aria-hidden="true"></span>
-            </div>
+            </div> -->
         </li>
     </ul>
 </section>
 <section class='available-channels side-list-item'>
     <header class='channel-list-header'><h5>Available</h5></header>
     <ul class='channel-list'>
-        <li class='channel-list-item' ng-repeat='channel in availableChannels'>
+        <li class='channel-list-item' ui-sref='channel.id({channelId: channel._id})' ng-repeat='channel in availableChannels'>
             <div class='channel-list-item-bg' ng-class='{ active: activeChannelId === channel._id }'></div> 
-            <div class='cli-name'>{{channel.name}}</div><div class='cli-button'>
+            <div class='cli-name'>{{channel.name}}</div><!-- <div class='cli-button'>
                 <span ui-sref='channel.id({channelId: channel._id})' class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
                 <span ng-click='subscribe(channel._id)' class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
-            </div>
+            </div> -->
         </li>
     </ul>
 </section>

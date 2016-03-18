@@ -44,7 +44,7 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 			getById: function(channelId) {
 				return $rootScope.channels.filter(function(channel) {
 					return channel._id === channelId;
-				})[0];
+				})[0] || null;
 			},
 
 			getByName: function(name) {

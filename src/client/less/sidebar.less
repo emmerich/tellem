@@ -1,6 +1,7 @@
 @channel-list-item-left-padding: 20px;
 @side-list-outer-padding: 10px;
 @cli-button-width: 140px;
+@hover-colour: lightblue;
 
 section.side-list {
 	background-color: @side-list-colour;
@@ -41,10 +42,17 @@ ul.channel-list {
 
 li.channel-list-item {
 	position: relative;
+	cursor: pointer;
 
 	> div {
 		display: inline-block;
 		padding: 3px 0;
+	}
+}
+
+.channel-list-item:hover {
+	> .channel-list-item-bg:not(.active) {
+		background-color: @hover-colour;
 	}
 }
 

@@ -37355,6 +37355,213 @@ require('../../js/affix.js')
 }(jQuery);
 
 },{}],19:[function(require,module,exports){
+/**
+ * Copyright 2012 Tsvetan Tsvetkov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Tsvetan Tsvetkov (tsekach@gmail.com)
+ */
+(function (win) {
+    /*
+     Safari native methods required for Notifications do NOT run in strict mode.
+     */
+    //"use strict";
+    var PERMISSION_DEFAULT = "default",
+        PERMISSION_GRANTED = "granted",
+        PERMISSION_DENIED = "denied",
+        PERMISSION = [PERMISSION_GRANTED, PERMISSION_DEFAULT, PERMISSION_DENIED],
+        defaultSetting = {
+            pageVisibility: false,
+            autoClose: 0
+        },
+        empty = {},
+        emptyString = "",
+        isSupported = (function () {
+            var isSupported = false;
+            /*
+             * Use try {} catch() {} because the check for IE may throws an exception
+             * if the code is run on browser that is not Safar/Chrome/IE or
+             * Firefox with html5notifications plugin.
+             *
+             * Also, we canNOT detect if msIsSiteMode method exists, as it is
+             * a method of host object. In IE check for existing method of host
+             * object returns undefined. So, we try to run it - if it runs
+             * successfully - then it is IE9+, if not - an exceptions is thrown.
+             */
+            try {
+                isSupported = !!(/* Safari, Chrome */win.Notification || /* Chrome & ff-html5notifications plugin */win.webkitNotifications || /* Firefox Mobile */navigator.mozNotification || /* IE9+ */(win.external && win.external.msIsSiteMode() !== undefined));
+            } catch (e) {}
+            return isSupported;
+        }()),
+        ieVerification = Math.floor((Math.random() * 10) + 1),
+        isFunction = function (value) { return (value && (value).constructor === Function); },
+        isString = function (value) {return (value && (value).constructor === String); },
+        isObject = function (value) {return (value && (value).constructor === Object); },
+        /**
+         * Dojo Mixin
+         */
+        mixin = function (target, source) {
+            var name, s;
+            for (name in source) {
+                s = source[name];
+                if (!(name in target) || (target[name] !== s && (!(name in empty) || empty[name] !== s))) {
+                    target[name] = s;
+                }
+            }
+            return target; // Object
+        },
+        noop = function () {},
+        settings = defaultSetting;
+    function getNotification(title, options) {
+        var notification;
+        if (win.Notification) { /* Safari 6, Chrome (23+) */
+            notification =  new win.Notification(title, {
+                /* The notification's icon - For Chrome in Windows, Linux & Chrome OS */
+                icon: isString(options.icon) ? options.icon : options.icon.x32,
+                /* The notification’s subtitle. */
+                body: options.body || emptyString,
+                /*
+                    The notification’s unique identifier.
+                    This prevents duplicate entries from appearing if the user has multiple instances of your website open at once.
+                */
+                tag: options.tag || emptyString
+            });
+        } else if (win.webkitNotifications) { /* FF with html5Notifications plugin installed */
+            notification = win.webkitNotifications.createNotification(options.icon, title, options.body);
+            notification.show();
+        } else if (navigator.mozNotification) { /* Firefox Mobile */
+            notification = navigator.mozNotification.createNotification(title, options.body, options.icon);
+            notification.show();
+        } else if (win.external && win.external.msIsSiteMode()) { /* IE9+ */
+            //Clear any previous notifications
+            win.external.msSiteModeClearIconOverlay();
+            win.external.msSiteModeSetIconOverlay((isString(options.icon) ? options.icon : options.icon.x16), title);
+            win.external.msSiteModeActivate();
+            notification = {
+                "ieVerification": ieVerification + 1
+            };
+        }
+        return notification;
+    }
+    function getWrapper(notification) {
+        return {
+            close: function () {
+                if (notification) {
+                    if (notification.close) {
+                        //http://code.google.com/p/ff-html5notifications/issues/detail?id=58
+                        notification.close();
+                    }
+                    else if (notification.cancel) {
+                        notification.cancel();
+                    } else if (win.external && win.external.msIsSiteMode()) {
+                        if (notification.ieVerification === ieVerification) {
+                            win.external.msSiteModeClearIconOverlay();
+                        }
+                    }
+                }
+            }
+        };
+    }
+    function requestPermission(callback) {
+        if (!isSupported) { return; }
+        var callbackFunction = isFunction(callback) ? callback : noop;
+        if (win.webkitNotifications && win.webkitNotifications.checkPermission) {
+            /*
+             * Chrome 23 supports win.Notification.requestPermission, but it
+             * breaks the browsers, so use the old-webkit-prefixed
+             * win.webkitNotifications.checkPermission instead.
+             *
+             * Firefox with html5notifications plugin supports this method
+             * for requesting permissions.
+             */
+            win.webkitNotifications.requestPermission(callbackFunction);
+        } else if (win.Notification && win.Notification.requestPermission) {
+            win.Notification.requestPermission(callbackFunction);
+        }
+    }
+    function permissionLevel() {
+        var permission;
+        if (!isSupported) { return; }
+        if (win.Notification && win.Notification.permissionLevel) {
+            //Safari 6
+            permission = win.Notification.permissionLevel();
+        } else if (win.webkitNotifications && win.webkitNotifications.checkPermission) {
+            //Chrome & Firefox with html5-notifications plugin installed
+            permission = PERMISSION[win.webkitNotifications.checkPermission()];
+        } else if (win.Notification && win.Notification.permission) {
+            // Firefox 23+
+            permission = win.Notification.permission;
+        } else if (navigator.mozNotification) {
+            //Firefox Mobile
+            permission = PERMISSION_GRANTED;
+        } else if (win.external && (win.external.msIsSiteMode() !== undefined)) { /* keep last */
+            //IE9+
+            permission = win.external.msIsSiteMode() ? PERMISSION_GRANTED : PERMISSION_DEFAULT;
+        }
+        return permission;
+    }
+    /**
+     *
+     */
+    function config(params) {
+        if (params && isObject(params)) {
+            mixin(settings, params);
+        }
+        return settings;
+    }
+    
+    function createNotification(title, options) {
+        var notification,
+            notificationWrapper;
+        /*
+            Return undefined if notifications are not supported.
+
+            Return undefined if no permissions for displaying notifications.
+
+            Title and icons are required. Return undefined if not set.
+         */
+        if (isSupported && isString(title) && (options && (isString(options.icon) || isObject(options.icon))) && (permissionLevel() === PERMISSION_GRANTED)) {
+            notification = getNotification(title, options);
+        }
+        notificationWrapper = getWrapper(notification);
+        //Auto-close notification
+        if (settings.autoClose && notification && !notification.ieVerification && notification.addEventListener) {
+            notification.addEventListener("show", function () {
+                var notification = notificationWrapper;
+                win.setTimeout(function () {
+                    notification.close();
+                }, settings.autoClose);
+            });
+        }
+        return notificationWrapper;
+    }
+    win.notify = {
+        PERMISSION_DEFAULT: PERMISSION_DEFAULT,
+        PERMISSION_GRANTED: PERMISSION_GRANTED,
+        PERMISSION_DENIED: PERMISSION_DENIED,
+        isSupported: isSupported,
+        config: config,
+        createNotification: createNotification,
+        permissionLevel: permissionLevel,
+        requestPermission: requestPermission
+    };
+    if (isFunction(Object.seal)) {
+        Object.seal(win.notify);
+    }
+}(window));
+
+},{}],20:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.2.1
  * http://jquery.com/
@@ -47187,7 +47394,7 @@ if ( !noGlobal ) {
 return jQuery;
 }));
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -47281,7 +47488,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":21,"./socket":23,"./url":24,"debug":28,"socket.io-parser":61}],21:[function(require,module,exports){
+},{"./manager":22,"./socket":24,"./url":25,"debug":29,"socket.io-parser":62}],22:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -47840,7 +48047,7 @@ Manager.prototype.onreconnect = function(){
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":22,"./socket":23,"backo2":25,"component-bind":26,"component-emitter":27,"debug":28,"engine.io-client":31,"indexof":58,"socket.io-parser":61}],22:[function(require,module,exports){
+},{"./on":23,"./socket":24,"backo2":26,"component-bind":27,"component-emitter":28,"debug":29,"engine.io-client":32,"indexof":59,"socket.io-parser":62}],23:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -47866,7 +48073,7 @@ function on(obj, ev, fn) {
   };
 }
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -48280,7 +48487,7 @@ Socket.prototype.compress = function(compress){
   return this;
 };
 
-},{"./on":22,"component-bind":26,"component-emitter":27,"debug":28,"has-binary":56,"socket.io-parser":61,"to-array":66}],24:[function(require,module,exports){
+},{"./on":23,"component-bind":27,"component-emitter":28,"debug":29,"has-binary":57,"socket.io-parser":62,"to-array":67}],25:[function(require,module,exports){
 (function (global){
 
 /**
@@ -48360,7 +48567,7 @@ function url(uri, loc){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":28,"parseuri":59}],25:[function(require,module,exports){
+},{"debug":29,"parseuri":60}],26:[function(require,module,exports){
 
 /**
  * Expose `Backoff`.
@@ -48447,7 +48654,7 @@ Backoff.prototype.setJitter = function(jitter){
 };
 
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -48472,7 +48679,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -48635,7 +48842,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -48805,7 +49012,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":29}],29:[function(require,module,exports){
+},{"./debug":30}],30:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -49004,7 +49211,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":30}],30:[function(require,module,exports){
+},{"ms":31}],31:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -49131,11 +49338,11 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 
 module.exports =  require('./lib/');
 
-},{"./lib/":32}],32:[function(require,module,exports){
+},{"./lib/":33}],33:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -49147,7 +49354,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":33,"engine.io-parser":43}],33:[function(require,module,exports){
+},{"./socket":34,"engine.io-parser":44}],34:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -49879,7 +50086,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":34,"./transports":35,"component-emitter":41,"debug":28,"engine.io-parser":43,"indexof":58,"parsejson":53,"parseqs":54,"parseuri":59}],34:[function(require,module,exports){
+},{"./transport":35,"./transports":36,"component-emitter":42,"debug":29,"engine.io-parser":44,"indexof":59,"parsejson":54,"parseqs":55,"parseuri":60}],35:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -50036,7 +50243,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":41,"engine.io-parser":43}],35:[function(require,module,exports){
+},{"component-emitter":42,"engine.io-parser":44}],36:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -50093,7 +50300,7 @@ function polling(opts){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":36,"./polling-xhr":37,"./websocket":39,"xmlhttprequest-ssl":40}],36:[function(require,module,exports){
+},{"./polling-jsonp":37,"./polling-xhr":38,"./websocket":40,"xmlhttprequest-ssl":41}],37:[function(require,module,exports){
 (function (global){
 
 /**
@@ -50335,7 +50542,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":38,"component-inherit":42}],37:[function(require,module,exports){
+},{"./polling":39,"component-inherit":43}],38:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -50751,7 +50958,7 @@ function unloadHandler() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":38,"component-emitter":41,"component-inherit":42,"debug":28,"xmlhttprequest-ssl":40}],38:[function(require,module,exports){
+},{"./polling":39,"component-emitter":42,"component-inherit":43,"debug":29,"xmlhttprequest-ssl":41}],39:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -51000,7 +51207,7 @@ Polling.prototype.uri = function(){
   return schema + '://' + (ipv6 ? '[' + this.hostname + ']' : this.hostname) + port + this.path + query;
 };
 
-},{"../transport":34,"component-inherit":42,"debug":28,"engine.io-parser":43,"parseqs":54,"xmlhttprequest-ssl":40,"yeast":55}],39:[function(require,module,exports){
+},{"../transport":35,"component-inherit":43,"debug":29,"engine.io-parser":44,"parseqs":55,"xmlhttprequest-ssl":41,"yeast":56}],40:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -51292,7 +51499,7 @@ WS.prototype.check = function(){
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../transport":34,"component-inherit":42,"debug":28,"engine.io-parser":43,"parseqs":54,"ws":84,"yeast":55}],40:[function(require,module,exports){
+},{"../transport":35,"component-inherit":43,"debug":29,"engine.io-parser":44,"parseqs":55,"ws":85,"yeast":56}],41:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 var hasCORS = require('has-cors');
 
@@ -51330,7 +51537,7 @@ module.exports = function(opts) {
   }
 }
 
-},{"has-cors":52}],41:[function(require,module,exports){
+},{"has-cors":53}],42:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -51496,7 +51703,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -51504,7 +51711,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -52102,7 +52309,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":44,"after":45,"arraybuffer.slice":46,"base64-arraybuffer":47,"blob":48,"has-binary":49,"utf8":51}],44:[function(require,module,exports){
+},{"./keys":45,"after":46,"arraybuffer.slice":47,"base64-arraybuffer":48,"blob":49,"has-binary":50,"utf8":52}],45:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -52123,7 +52330,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -52153,7 +52360,7 @@ function after(count, callback, err_cb) {
 
 function noop() {}
 
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /**
  * An abstraction for slicing an arraybuffer even when
  * ArrayBuffer.prototype.slice is not supported
@@ -52184,7 +52391,7 @@ module.exports = function(arraybuffer, start, end) {
   return result.buffer;
 };
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -52245,7 +52452,7 @@ module.exports = function(arraybuffer, start, end) {
   };
 })("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -52345,7 +52552,7 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 (function (global){
 
 /*
@@ -52407,12 +52614,12 @@ function hasBinary(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":50}],50:[function(require,module,exports){
+},{"isarray":51}],51:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/utf8js v2.0.0 by @mathias */
 ;(function(root) {
@@ -52660,7 +52867,7 @@ module.exports = Array.isArray || function (arr) {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -52679,7 +52886,7 @@ try {
   module.exports = false;
 }
 
-},{}],53:[function(require,module,exports){
+},{}],54:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -52714,7 +52921,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -52753,7 +52960,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 'use strict';
 
 var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
@@ -52823,7 +53030,7 @@ yeast.encode = encode;
 yeast.decode = decode;
 module.exports = yeast;
 
-},{}],56:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 (function (global){
 
 /*
@@ -52886,9 +53093,9 @@ function hasBinary(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":57}],57:[function(require,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],58:[function(require,module,exports){
+},{"isarray":58}],58:[function(require,module,exports){
+arguments[4][51][0].apply(exports,arguments)
+},{"dup":51}],59:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -52899,7 +53106,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -52940,7 +53147,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -53085,7 +53292,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":62,"isarray":64}],61:[function(require,module,exports){
+},{"./is-buffer":63,"isarray":65}],62:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -53487,7 +53694,7 @@ function error(data){
   };
 }
 
-},{"./binary":60,"./is-buffer":62,"component-emitter":63,"debug":28,"isarray":64,"json3":65}],62:[function(require,module,exports){
+},{"./binary":61,"./is-buffer":63,"component-emitter":64,"debug":29,"isarray":65,"json3":66}],63:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -53504,11 +53711,11 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],63:[function(require,module,exports){
-arguments[4][41][0].apply(exports,arguments)
-},{"dup":41}],64:[function(require,module,exports){
-arguments[4][50][0].apply(exports,arguments)
-},{"dup":50}],65:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
+arguments[4][42][0].apply(exports,arguments)
+},{"dup":42}],65:[function(require,module,exports){
+arguments[4][51][0].apply(exports,arguments)
+},{"dup":51}],66:[function(require,module,exports){
 (function (global){
 /*! JSON v3.3.2 | http://bestiejs.github.io/json3 | Copyright 2012-2014, Kit Cambridge | http://kit.mit-license.org */
 ;(function () {
@@ -54414,7 +54621,7 @@ arguments[4][50][0].apply(exports,arguments)
 }).call(this);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -54429,7 +54636,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 'use strict';
 
 angular.module('tellemApp.ack', [])
@@ -54452,7 +54659,7 @@ angular.module('tellemApp.ack', [])
 			}
 		};
 	});
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 'use strict';
 
 // AngularJS packages are not CommonJS packages, so we don't have to assign
@@ -54466,6 +54673,7 @@ require('angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.
 require('angular-chosen-localytics/dist/angular-chosen.min');
 
 require('bootstrap');
+require('html5-desktop-notifications');
 
 // Typically this is what you would see in the index.html file, but we can load
 // them using CommonJS. Any order as Angular takes care of the actual dependency
@@ -54512,9 +54720,14 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 				url: '/:channelId',
 				templateUrl: 'view/channel.html',
 				controller: 'ChannelCtrl'
+			})
+
+			.state('channel.404', {
+				url: '/404',
+				templateUrl: 'view/channel.404.html'
 			});
 	}]);
-},{"./ack":67,"./bootstrap":69,"./bulletins":70,"./controllers":71,"./db":72,"./notifier":73,"./session":74,"./socket":75,"./sync":76,"angular":5,"angular-chosen-localytics/dist/angular-chosen.min":1,"angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.min":2,"angular-ui-router":3,"bootstrap":6,"jquery":19}],69:[function(require,module,exports){
+},{"./ack":68,"./bootstrap":70,"./bulletins":71,"./controllers":72,"./db":73,"./notifier":74,"./session":75,"./socket":76,"./sync":77,"angular":5,"angular-chosen-localytics/dist/angular-chosen.min":1,"angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.min":2,"angular-ui-router":3,"bootstrap":6,"html5-desktop-notifications":19,"jquery":20}],70:[function(require,module,exports){
 'use strict';
 
 var User = require('../../common/model/User');
@@ -54534,7 +54747,7 @@ angular.module('tellemApp.bootstrap', [])
 
 		$rootScope.user = new User(bootstrap.user);
 	}]);
-},{"../../common/model/Channel":79,"../../common/model/User":83}],70:[function(require,module,exports){
+},{"../../common/model/Channel":80,"../../common/model/User":84}],71:[function(require,module,exports){
 'use strict';
 
 var event = require('../../common/event');
@@ -54556,12 +54769,23 @@ angular.module('tellemApp.bulletins', ['tellemApp.socket', 'tellemApp.notifier']
 			}
 		};
 	}]);
-},{"../../common/event":77}],71:[function(require,module,exports){
+},{"../../common/event":78}],72:[function(require,module,exports){
 'use strict';
 
 var BulletinRequest = require('../../common/model/BulletinRequest');
+require('html5-desktop-notifications');
 
 angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins', 'localytics.directives'])
+
+	.controller('HomeCtrl', ['$scope', function($scope) {
+		$scope.permissionLevel = notify.permissionLevel();
+		$scope.DEFAULT = notify.PERMISSION_DEFAULT;
+		$scope.DENIED = notify.PERMISSION_DENIED;
+
+		$scope.requestPermission = function() {
+			notify.requestPermission();
+		};
+	}])
 
 	.controller('SideListCtrl', ['$rootScope', '$scope', 'users', 'channels', 'currentUser',
 		function($rootScope, $scope, users, channels, currentUser) {
@@ -54643,6 +54867,12 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 		var channelId = $stateParams.channelId;
 
 		$scope.channel = channels.getById(channelId);
+
+		if($scope.channel === null) {
+			$state.go('channel.404');
+			return;
+		}
+
 		$rootScope.activeChannelId = channelId;
 		$scope.isOwner = $scope.channel.owner === currentUser()._id;
 
@@ -54679,7 +54909,7 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 			});
 		};
 	}]);
-},{"../../common/model/BulletinRequest":78}],72:[function(require,module,exports){
+},{"../../common/model/BulletinRequest":79,"html5-desktop-notifications":19}],73:[function(require,module,exports){
 'use strict';
 
 var Channel = require('../../common/model/Channel');
@@ -54726,7 +54956,7 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 			getById: function(channelId) {
 				return $rootScope.channels.filter(function(channel) {
 					return channel._id === channelId;
-				})[0];
+				})[0] || null;
 			},
 
 			getByName: function(name) {
@@ -54751,11 +54981,25 @@ angular.module('tellemApp.db', ['tellemApp.sync'])
 			}
 		}
 	}]);
-},{"../../common/model/Channel":79}],73:[function(require,module,exports){
+},{"../../common/model/Channel":80}],74:[function(require,module,exports){
+var notification = require('html5-desktop-notifications');
+
 angular.module('tellemApp.notifier', ['tellemApp.db'])
 
-	.factory('notifier', ['ChromeNotifier', function(chromeNotifier) {
-		return chromeNotifier;
+	.factory('notifier', ['notificationTitle', 'channels', function(notificationTitle, channels) {
+		return {
+			notify: function(bulletin) {
+				var channel = channels.getById(bulletin.channelId);
+				var title = notificationTitle.get(bulletin, channel);
+
+				var notification = notify.createNotification(title, {
+					title: title,
+					body: bulletin.message,
+					icon: bulletin.icon,
+					tag: channel._id
+				});
+			}
+		};
 	}])
 
 	.factory('ChromeNotifier', ['notificationTitle', 'channels', function(notificationTitle, channels) {
@@ -54784,7 +55028,7 @@ angular.module('tellemApp.notifier', ['tellemApp.db'])
 			}
 		};
 	});
-},{}],74:[function(require,module,exports){
+},{"html5-desktop-notifications":19}],75:[function(require,module,exports){
 'use strict';
 
 angular.module('tellemApp.session', [])
@@ -54794,7 +55038,7 @@ angular.module('tellemApp.session', [])
 			return $rootScope.user;
 		};
 	}]);
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 'use strict';
 
 var io = require('socket.io-client');
@@ -54804,7 +55048,7 @@ angular.module('tellemApp.socket', [])
 	.factory('socket', function() {
 		return io();
 	});
-},{"socket.io-client":20}],76:[function(require,module,exports){
+},{"socket.io-client":21}],77:[function(require,module,exports){
 'use strict';
 
 var ModelUpdateRequest = require('../../common/model/ModelUpdateRequest');
@@ -54927,7 +55171,7 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tell
 			}
 		}
 	}]);
-},{"../../common/event":77,"../../common/model/Channel":79,"../../common/model/ModelCreateRequest":80,"../../common/model/ModelDeleteRequest":81,"../../common/model/ModelUpdateRequest":82}],77:[function(require,module,exports){
+},{"../../common/event":78,"../../common/model/Channel":80,"../../common/model/ModelCreateRequest":81,"../../common/model/ModelDeleteRequest":82,"../../common/model/ModelUpdateRequest":83}],78:[function(require,module,exports){
 module.exports = {
 	BULLETIN_REQUEST: 'bulletinRequest',
 	BULLETIN: 'bulletin',
@@ -54937,14 +55181,14 @@ module.exports = {
 
 	DB_UPDATE: 'dbUpdate'
 };
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 var BulletinRequest = function(params) {
 	this.message = params.message;
 	this.channelId = params.channelId;
 };
 
 module.exports = BulletinRequest;
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 var Channel = function(params) {
 	this._id = params._id;
 	this.name = params.name;
@@ -54954,21 +55198,21 @@ var Channel = function(params) {
 };
 
 module.exports = Channel;
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 var ModelCreateRequest = function(params) {
 	this.collection = params.collection;
 	this.model = params.model;
 };
 
 module.exports = ModelCreateRequest;
-},{}],81:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 var ModelDeleteRequest = function(params) {
 	this.id = params.id;
 	this.collection = params.collection;
 };
 
 module.exports = ModelDeleteRequest;
-},{}],82:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 var ModelUpdateRequest = function(params) {
 	this.id = params.id;
 	this.collection = params.collection;
@@ -54976,7 +55220,7 @@ var ModelUpdateRequest = function(params) {
 };
 
 module.exports = ModelUpdateRequest;
-},{}],83:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 var User = function(params) {
 	this._id = params._id;
 	this.username = params.username;
@@ -54985,6 +55229,6 @@ var User = function(params) {
 };
 
 module.exports = User;
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 
-},{}]},{},[68]);
+},{}]},{},[69]);
