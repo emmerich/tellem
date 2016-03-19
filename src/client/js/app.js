@@ -63,5 +63,10 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 			.state('channel.404', {
 				url: '/404',
 				templateUrl: 'view/channel.404.html'
-			});
+			})
+
+		.state('bot', {
+			url: '/bot',
+			templateUrl: 'view/bot.html'
+		});
 	}]);

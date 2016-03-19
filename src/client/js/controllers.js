@@ -5,7 +5,9 @@ require('html5-desktop-notifications');
 
 angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins', 'localytics.directives'])
 
-	.controller('HomeCtrl', ['$scope', function($scope) {
+	.controller('HomeCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+		$rootScope.activeChannelId = null;
+
 		$scope.permissionLevel = notify.permissionLevel();
 		$scope.DEFAULT = notify.PERMISSION_DEFAULT;
 		$scope.DENIED = notify.PERMISSION_DENIED;
@@ -136,4 +138,8 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 				$state.go('channel.id', { channelId: newChannel });
 			});
 		};
+	}])
+
+	.controller('BotCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+		$rootScope.activeChannelId = 'bot';
 	}]);

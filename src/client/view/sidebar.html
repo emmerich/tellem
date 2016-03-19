@@ -1,5 +1,6 @@
 <section class='send-notification side-list-item'>
-    <button type='button' ui-sref='send' class='btn btn-default btn-block'>Send Bulletin</button>
+    <a role='button' class='btn btn-success btn-block' href='http://goo.gl/forms/UQ5AI7T6Sd' target='_blank'>Leave Feedback</a>
+    <!-- <button type='button' ui-sref='send' class='btn btn-default btn-block'>Send Bulletin</button> -->
 </section>
 <header class='channels-header'>
     <h4>Channels</h4>
@@ -10,10 +11,7 @@
     <ul class='channel-list'>
         <li class='channel-list-item' ui-sref='channel.id({channelId: channel._id})' ng-repeat='channel in subscribedChannels' >
             <div class='channel-list-item-bg' ng-class='{ active: activeChannelId === channel._id }'></div> 
-            <div class='cli-name'>{{channel.name}}</div><!-- <div class='cli-button'>
-                <span class="glyphicon glyphicon-info-sign" ui-sref='channel.id({channelId: channel._id})' aria-hidden="true"></span>
-                <span class="glyphicon glyphicon-star" ng-click='unsubscribe(channel._id)' aria-hidden="true"></span>
-            </div> -->
+            <div class='cli-name'>{{channel.name}}</div>
         </li>
     </ul>
 </section>
@@ -22,10 +20,16 @@
     <ul class='channel-list'>
         <li class='channel-list-item' ui-sref='channel.id({channelId: channel._id})' ng-repeat='channel in availableChannels'>
             <div class='channel-list-item-bg' ng-class='{ active: activeChannelId === channel._id }'></div> 
-            <div class='cli-name'>{{channel.name}}</div><!-- <div class='cli-button'>
-                <span ui-sref='channel.id({channelId: channel._id})' class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-                <span ng-click='subscribe(channel._id)' class="glyphicon glyphicon-star-empty" aria-hidden="true"></span>
-            </div> -->
+            <div class='cli-name'>{{channel.name}}</div>
         </li>
     </ul>
 </section>
+<!-- <section class='demo-tools side-list-item'>
+    <header class='channel-list-header'><h5>Demo Tools</h5></header>
+    <ul class='channel-list'>
+        <li class='channel-list-item' ui-sref='bot'>
+            <div class='channel-list-item-bg' ng-class='{ active: activeChannelId === "bot" }'></div>
+            <div class='cli-name'>tellem Bot</div>
+        </li>
+    </ul>
+</section> -->

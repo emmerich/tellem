@@ -54725,7 +54725,12 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 			.state('channel.404', {
 				url: '/404',
 				templateUrl: 'view/channel.404.html'
-			});
+			})
+
+		.state('bot', {
+			url: '/bot',
+			templateUrl: 'view/bot.html'
+		});
 	}]);
 },{"./ack":68,"./bootstrap":70,"./bulletins":71,"./controllers":72,"./db":73,"./notifier":74,"./session":75,"./socket":76,"./sync":77,"angular":5,"angular-chosen-localytics/dist/angular-chosen.min":1,"angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.min":2,"angular-ui-router":3,"bootstrap":6,"html5-desktop-notifications":19,"jquery":20}],70:[function(require,module,exports){
 'use strict';
@@ -54777,7 +54782,9 @@ require('html5-desktop-notifications');
 
 angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 'tellemApp.bulletins', 'localytics.directives'])
 
-	.controller('HomeCtrl', ['$scope', function($scope) {
+	.controller('HomeCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+		$rootScope.activeChannelId = null;
+
 		$scope.permissionLevel = notify.permissionLevel();
 		$scope.DEFAULT = notify.PERMISSION_DEFAULT;
 		$scope.DENIED = notify.PERMISSION_DENIED;
@@ -54908,6 +54915,10 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 				$state.go('channel.id', { channelId: newChannel });
 			});
 		};
+	}])
+
+	.controller('BotCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
+		$rootScope.activeChannelId = 'bot';
 	}]);
 },{"../../common/model/BulletinRequest":79,"html5-desktop-notifications":19}],73:[function(require,module,exports){
 'use strict';
