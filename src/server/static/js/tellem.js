@@ -54785,6 +54785,8 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 	.controller('HomeCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
 		$rootScope.activeChannelId = null;
 
+		$scope.contactMail = 'steven@usetellem.com';
+
 		$scope.permissionLevel = notify.permissionLevel();
 		$scope.DEFAULT = notify.PERMISSION_DEFAULT;
 		$scope.DENIED = notify.PERMISSION_DENIED;
@@ -55056,9 +55058,19 @@ var io = require('socket.io-client');
 
 angular.module('tellemApp.socket', [])
 
-	.factory('socket', function() {
-		return io();
-	});
+	.factory('socket', [function() {
+		var connection = io();
+
+		connection.on('connect_error', function() {
+			$('#connectionError').modal('show');
+		});
+
+		connection.on('connect', function() {
+			$('#connectionError').modal('hide');
+		});
+
+		return connection;
+	}]);
 },{"socket.io-client":21}],77:[function(require,module,exports){
 'use strict';
 

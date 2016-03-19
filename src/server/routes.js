@@ -4,6 +4,7 @@ module.exports = function(app, passport, channels) {
 	app.get('/', isLoggedIn(), function (req, res) {
 		channels.getAll().then(function(channels) {
 			res.render('index', {
+				'contactMail': 'steven@usetellem.com',
 				'bootstrap': {
 					'channels': channels,
 					'user': req.user

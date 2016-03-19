@@ -8,6 +8,8 @@ angular.module('tellemApp.controllers', ['tellemApp.db', 'tellemApp.session', 't
 	.controller('HomeCtrl', ['$scope', '$rootScope', function($scope, $rootScope) {
 		$rootScope.activeChannelId = null;
 
+		$scope.contactMail = 'steven@usetellem.com';
+
 		$scope.permissionLevel = notify.permissionLevel();
 		$scope.DEFAULT = notify.PERMISSION_DEFAULT;
 		$scope.DENIED = notify.PERMISSION_DENIED;
