@@ -110,4 +110,4 @@ io.on('connection', function(socket) {
 require('./routes')(app, passport, channels);
 
 // Start the server.
-http.listen(8080, function() {});
+http.listen(80, function() {});
