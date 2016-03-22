@@ -24,6 +24,7 @@
     "jade": "^1.11.0",
     "jquery": "^2.2.1",
     "less": "^2.6.1",
+    "mongodb": "^2.1.10",
     "mongoose": "^4.4.7",
     "normalize.css": "^3.0.3",
     "passport": "^0.3.2",
@@ -32,5 +33,15 @@
     "q": "^1.4.1",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5"
+  },
+  "devDependencies": {
+    "gulp-browserify": "^0.5.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-ignore": "^2.0.1",
+    "gulp-less": "^3.0.5",
+    "gulp-minify": "0.0.7",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-rename": "^1.2.2",
+    "run-sequence": "^1.1.5"
   }
 }

@@ -1,9 +1,11 @@
+var env = require('./config').env;
 var isLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 
 module.exports = function(app, passport, channels) {
 	app.get('/', isLoggedIn(), function (req, res) {
 		channels.getAll().then(function(channels) {
 			res.render('index', {
+				'env': env,
 				'contactMail': 'steven@usetellem.com',
 				'bootstrap': {
 					'channels': channels,

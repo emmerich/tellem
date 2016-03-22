@@ -2,9 +2,13 @@ doctype html
 html(lang='en', ng-app='tellemApp')
   head
     title='tellem'
-    link(rel='stylesheet/less', type='text/css', href='/less/styles.less')
+
+    if env == 'dev'
+        link(rel='stylesheet/less', type='text/css', href='/less/styles.less')
+    else
+        link(rel='stylesheet', type='text/css', href='/css/styles.css')
   body
-    div(id='connectionError', class='modal fade', tabindex='-1', role='dialog')
+    div(id='connectionError', class='modal fade')
         div(class='modal-dialog')
             div(class='modal-content')
                 div(class='modal-header')
@@ -19,7 +23,8 @@ html(lang='en', ng-app='tellemApp')
             section(class='side-list', ng-controller='SideListCtrl', ng-include="'view/sidebar.html'")
             section(class='centre-pane', ui-view)
 
-    script(type='text/javascript', src='/js/lib/less.js')
+    if env == 'dev'
+        script(type='text/javascript', src='/js/lib/less.js')
 
     script(type='text/javascript', src='//code.jquery.com/jquery-2.2.0.min.js')
 
@@ -29,12 +34,7 @@ html(lang='en', ng-app='tellemApp')
     each data, varName in bootstrap
         script(type='text/javascript')!='window._tellem.bootstrap.' + varName + ' = ' + JSON.stringify(data)
 
-    script(type='text/javascript', src='/js/tellem.js')
-    //- script(type='text/javascript', src='/js/app.js')
-    //- script(type='text/javascript', src='/js/socket.js')
-    //- script(type='text/javascript', src='/js/sync.js')
-    //- script(type='text/javascript', src='/js/notification.js')
-    //- script(type='text/javascript', src='/js/db.js')
-    //- script(type='text/javascript', src='/js/session.js')
-    //- script(type='text/javascript', src='/js/notifier.js')
-    //- script(type='text/javascript', src='/js/controllers.js')
+    if env == 'dev'
+        script(type='text/javascript', src='/js/tellem.js')
+    else
+        script(type='text/javascript', src='/js/app-min.js')

@@ -55062,7 +55062,10 @@ angular.module('tellemApp.socket', [])
 		var connection = io();
 
 		connection.on('connect_error', function() {
-			$('#connectionError').modal('show');
+			$('#connectionError').modal({
+				keyboard: false,
+				backdrop: 'static'
+			});
 		});
 
 		connection.on('connect', function() {

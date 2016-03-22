@@ -1,3 +1,4 @@
+var config = require('./config')();
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
@@ -33,14 +34,14 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 
 // DB
-var url = 'mongodb://localhost:27017/tellem';
+var url = config.db;
 var database = new MongooseDB({
 	mongoose: require('mongoose'),
 	url: url
 });
 database.init();
 
-var sessionStore = new MongoStore({ url: 'mongodb://localhost:27017/tellem' });
+var sessionStore = new MongoStore({ url: config.db });
 
 var dbEmitter = new DefaultEmitter({
 	event: event.DB_UPDATE
@@ -69,7 +70,6 @@ app.use(express.static(__dirname + '/static'));
 
 //dev only
 app.use(express.static(__dirname + '/../client'));
-app.use('/bootstrap', express.static(__dirname + '/../../node_modules/bootstrap/less'));
 app.use('/fonts', express.static(__dirname + '/../../node_modules/bootstrap/fonts'));
 
 app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, store: sessionStore }));
@@ -110,6 +110,4 @@ io.on('connection', function(socket) {
 require('./routes')(app, passport, channels);
 
 // Start the server.
-http.listen(3000, function() {
-	require('./tellembot')(bulletinEmitter);
-});
+http.listen(8080, function() {});
