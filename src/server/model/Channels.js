@@ -15,14 +15,11 @@ Channels.prototype.delete = function(deleteRequest, ack, sender) {
 	var _this = this;
 	var deferred = q.defer();
 
-	console.log('Delete channel', deleteRequest.id);
-
 	this.db.findOne(this.model, { _id: deleteRequest.id }).then(function(channelToDelete) {
 		if(channelToDelete.owner.equals(sender._id)) {
 			var emitGroup = new ModelChange();
 
 			_this.db.delete(_this.model, deleteRequest.id).then(function() {
-				console.log('deleted model');
 				emitGroup.delete(collections.CHANNELS, deleteRequest.id);
 
 				var p = _this.users.deleteAllSubscriptionsForChannel(deleteRequest.id);
@@ -33,7 +30,6 @@ Channels.prototype.delete = function(deleteRequest, ack, sender) {
 					});
 
 					_this.dbEmitter.emit(emitGroup, ack);
-					console.log('deleted all', users);
 					deferred.resolve(users);
 				});
 			});

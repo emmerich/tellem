@@ -34,7 +34,6 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tell
 		};
 
 		socket.on(event.DB_UPDATE, function(payload) {
-			console.log('got DB_UPDATE', payload);
 			var modelChange = payload.data;
 			var ack = payload._ack;
 
@@ -87,7 +86,6 @@ angular.module('tellemApp.sync', ['tellemApp.session', 'tellemApp.socket', 'tell
 		var emit = function(requestConstructor, event, params) {
 			var request = new requestConstructor(params);
 			var deferred = $q.defer();
-			console.log('emitting', request);
 			socket.emit(event, {
 				data: request,
 				_ack: acks.create(deferred)

@@ -18,7 +18,6 @@ MongooseDB.prototype.create = function(collection, model) {
 };
 
 MongooseDB.prototype.update = function(collection, id, update) {
-	console.log('MongooseDB update', collection, id, update);
 	return this._wrapPromise(collection.findByIdAndUpdate(id, update));
 };
 

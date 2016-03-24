@@ -22,7 +22,6 @@ module.exports = function(app, passport, channels) {
 	});
 
 	app.get('/login', function(req, res) {
-		// console.log(req.flash('error'));
 		var error = req.flash('error')[0];
 
 		if(error === 'Missing credentials') {
