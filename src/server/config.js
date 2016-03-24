@@ -15,8 +15,11 @@ module.exports = function() {
 		case 'prod':
 			// don't log to console on prod, go to file
 			winston.level = 'info';
-			winston.add(winston.transports.File, { filename: 'tellem.log' });
 			winston.remove(winston.transports.Console);
+			winston.remove(winston.transports.File);
+			
+			winston.add(winston.transports.File, { filename: 'tellem.log' });
+			
 			return {
 				db: 'mongodb://localhost:27017/tellem',
 				env: 'prod',
