@@ -15,8 +15,8 @@ module.exports = function() {
 				db: 'mongodb://localhost:27017/tellem',
 				env: 'prod',
 				port: 8080,
-				client_id: '',
-				devOps_id: ''
+				client_id: '56f42f12fb8b9c88e5685319',
+				devOps_id: '56f42f12fb8b9c88e568531a'
 			};
 		default:
 			throw 'Unknown environment: ' + env;
