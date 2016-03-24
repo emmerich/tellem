@@ -40,7 +40,7 @@ angular.module('tellemApp.notifier', ['tellemApp.db'])
 	.factory('notificationTitle', function() {
 		return {
 			get: function(bulletin, channel) {
-				return bulletin.sender + '@' + channel.name;
+				return '#' + channel.name + ' (from ' + bulletin.sender + ')';
 			}
 		};
 	});

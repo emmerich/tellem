@@ -1,6 +1,7 @@
 var LocalStrategy = require('passport-local').Strategy;
 var collections = require('../common/collections');
 var User = require('../common/schema/User');
+var winston = require('winston');
 
 module.exports = function(passport, users, database) {
 
@@ -28,13 +29,17 @@ module.exports = function(passport, users, database) {
                 var username = req.body.username;
 
                 if(email && username) {
+                    winston.log('info', 'New user registration, email: %s, username: %s', email, username);
+
                     database.create(User, {
                         username: username,
                         email: email,
                         subscribedChannels: []
                     }).then(function(user) {
+                        winston.log('info', 'New user created successfully.');
                         done(null, user);
                     }, function() {
+                        winston.log('warn', 'The email %s is already in use.', email);
                         done(null, false, { message: 'Email address already registered.'});
                     });
                 } else {

@@ -8,7 +8,7 @@ angular.module('tellemApp.ack', [])
 
 		return {
 			create: function(deferred) {
-				var id = Date.now();
+				var id = (Math.random() * 1000000).toFixed(0) + '' + Date.now();
 				acks[id] = deferred;
 				return id;
 			},

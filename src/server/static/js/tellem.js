@@ -54647,7 +54647,7 @@ angular.module('tellemApp.ack', [])
 
 		return {
 			create: function(deferred) {
-				var id = Date.now();
+				var id = (Math.random() * 1000000).toFixed(0) + '' + Date.now();
 				acks[id] = deferred;
 				return id;
 			},
@@ -55032,7 +55032,7 @@ angular.module('tellemApp.notifier', ['tellemApp.db'])
 	.factory('notificationTitle', function() {
 		return {
 			get: function(bulletin, channel) {
-				return bulletin.sender + '@' + channel.name;
+				return '#' + channel.name + ' (from ' + bulletin.sender + ')';
 			}
 		};
 	});

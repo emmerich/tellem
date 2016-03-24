@@ -1,3 +1,5 @@
+var winston = require('winston');
+
 var MongooseDB = function(params) {
 	this.mongoose = params.mongoose;
 	this.url = params.url;
@@ -6,9 +8,13 @@ var MongooseDB = function(params) {
 
 MongooseDB.prototype.init = function() {
 	this.mongoose.connect(this.url);
-	this.db.on('error', console.error.bind(console, 'connection error:'));
+
+	this.db.on('error', function() {
+		winston.log('error', 'MongoDB error.');
+	});
+
 	this.db.once('open', function() {
-		console.log('DB Connection Made');
+		winston.log('info', 'MongoDB connection made');
 	});
 };
 

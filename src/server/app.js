@@ -1,3 +1,4 @@
+var winston = require('winston');
 var config = require('./config')();
 var express = require('express');
 var app = express();
@@ -114,4 +115,7 @@ io.on('connection', function(socket) {
 require('./routes')(app, passport, channels);
 
 // Start the server.
-http.listen(config.port, function() {});
+http.listen(config.port, function() {
+	winston.log('info', 'Server listening on port %d', config.port);
+	require('./bot')(bulletinEmitter);
+});

@@ -1,0 +1,12 @@
+{
+    "name": "new_clients",
+    "description": "This channel will publish a message regarding a new client acquisition every 30 seconds, giving a more real-world use case.",
+    "senders": [],
+    "owner": "56f374d5cbd556080da805ba"
+}
+{
+    "name": "dev_ops",
+    "description": "Receive updates regarding the development environment and team (server restarts, bugs, etc.)",
+    "senders": [],
+    "owner": "56f374d5cbd556080da805ba"
+}
