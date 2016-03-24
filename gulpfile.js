@@ -29,7 +29,7 @@ gulp.task('common-js', function() {
 })
 
 gulp.task('server-mv-views', function() {
-	return gulp.src('./src/server/views/*')
+	return gulp.src('./src/server/views/**/*')
 		.pipe(gulp.dest('./dist/server/views'));
 });
 
