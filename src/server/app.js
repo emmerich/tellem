@@ -1,4 +1,14 @@
 var winston = require('winston');
+
+// Init the logger
+if(process.env.TELLEM_ENV === 'dev') {
+	winston.level = 'debug';
+} else if(process.env.TELLEM_ENV === 'prod') {
+	winston.level = 'info';
+	winston.remove(winston.transports.Console);
+	winston.add(winston.transports.File, { filename: 'tellem.log' });
+}
+
 var config = require('./config')();
 var express = require('express');
 var app = express();
