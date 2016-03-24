@@ -1,9 +1,37 @@
+doctype html
 html
-	head
-		title='Login'
-	body
-		p='Login page'
-		form(action='/login',method='post')
-			input(type='text',name='username')
-			input(type='text',name='password')
-			input(type='submit',value='Log in')
+  head
+    include ./includes/header.jade
+  body.grain-effect
+    header.site-header
+      h1 tellem
+    section.login-container.container
+      if message
+        section.row
+          p.alert.alert-warning=message
+      section.row
+        section.col-md-6
+          header.sub-section-header
+            h2 New to the Demo?
+            h2 Register
+            p
+            | Please note that your e-mail address is kept private from other users, but your username could possibly be seen by others.
+            form.login-form(method='POST', action='register', role='form')
+              div.form-group
+                label(for='email') Email Address (private)
+                input.form-control(type='email', id='email', name='email', placeholder='Email')
+              div.form-group
+                label(for='username') Username (public)
+                input.form-control(type='text', id='username', name='username', placeholder='Username')
+                input.form-control(type='hidden', name='password', value=' ')
+              button.btn.btn-default.pull-right(type='submit') Register
+        section.col-md-6
+          header.sub-section-header
+            h2 Already Registered?
+            h2 Log In
+            form(method='POST', action='/login', role='form')
+              div.form-group
+                label(for='email') Email Address
+                input.form-control(type='email', id='email', name='email', placeholder='Email')
+                input.form-control(type='hidden', name='password', value=' ')
+              button.btn.btn-default.pull-right(type='submit') Log In

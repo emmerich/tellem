@@ -1,9 +1,9 @@
 @import (inline) "normalize.css";
-@import (less) "bootstrap.less";
+@import (less) "../../../node_modules/bootstrap/less/bootstrap.less";
+@import (less) "./common/bootstrap-chosen.less";
 @import (less) "mixins.less";
-@import (less) "bootstrap-chosen.less";
 
-@application-font-family: Arial, sans-serif;
+// @application-font-family: Arial, sans-serif;
 
 // Colours used throughout the app
 @base-colour: #425879;
@@ -15,6 +15,8 @@
 @fc-side-list-colour: #FFF;
 
 // Widths
+@application-width: 760px;
+
 @header-height: 35px;
 @left-side-bar-width: 270px;
 @side-bar-horizontal-padding: 10px;
@@ -23,14 +25,14 @@
 @footer-height: 20px;
 
 @brand-primary: #425879;
-@brand-success: #3B756A;
+@brand-success: #409686;
 
 // Application-wide and root-level layout styles
-
 body {
 	height: 100%;
 	width: 100%;
 	position: relative;
+	background-color: #eee;
 }
 
 html {
@@ -38,20 +40,48 @@ html {
 	width: 100%;
 }
 
-h1 {
-	margin: 0;
-	font-family: @application-font-family;
-	font-size: 2em;
-	color: @fc-base-colour;
-	text-shadow: 1px 1px 1px #000;
-	padding-left: @outer-padding;
-	padding-top: 2px;
-	padding-bottom: 2px;
+
+
+.site-header {
+	background-color: @base-colour;
+	height: @header-height;
+	padding-left: 15px;
+
+	> h1 {
+		margin: 0;
+		font-size: 2em;
+		color: @fc-base-colour;
+		text-shadow: 1px 1px 1px #000;
+		padding: 2px 0;
+	}
 }
 
 h2 {
-	margin: 0;
+	font-size: 1.5em;
+	text-align: center;
 }
+
+header.top-bar {
+	background-color: @base-colour;
+	height: @header-height;
+}
+
+.application-width {
+	width: @application-width;
+}
+
+.centered {
+	margin: 0 auto;
+    position: relative;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.title-sep {
+	margin-left: 3px;
+}
+
+// .site-title
 
 header.main-header {
 	background-color: @base-colour;
@@ -98,9 +128,6 @@ section.centre-section-container {
 	min-width: 400px;
 }
 
-@import (less) "sidebar.less";
-@import (less) "sender.less";
-@import (less) "channel.less";
-@import (less) "channel.new.less";
-
-
+@import (less) "index.less";
+@import (less) "login.less";
+@import (less) "app.less";

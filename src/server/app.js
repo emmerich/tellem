@@ -6,6 +6,7 @@ var io = require('socket.io')(http);
 var passport = require('passport');
 var session = require('express-session');
 var passportSocketIo = require('passport.socketio');
+var flash = require('connect-flash');
 var MongoStore = require('connect-mongo')(session);
 var MongoClient = require('mongodb').MongoClient;
 var mongoose = require('mongoose');
@@ -61,10 +62,12 @@ var channels = new Channels({
 });
 
 // authentication
-require('./auth')(passport, users);
+require('./auth')(passport, users, database);
 
 // middleware
-app.use(require('body-parser').urlencoded({ extended: true }));
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(__dirname + '/static'));
 
@@ -75,6 +78,7 @@ app.use('/fonts', express.static(__dirname + '/../../node_modules/bootstrap/font
 app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, store: sessionStore }));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(flash());
 
 io.use(passportSocketIo.authorize({
   secret:      SECRET,    // the session_secret to parse the cookie
@@ -110,4 +114,4 @@ io.on('connection', function(socket) {
 require('./routes')(app, passport, channels);
 
 // Start the server.
-http.listen(8080, function() {});
+http.listen(config.port, function() {});

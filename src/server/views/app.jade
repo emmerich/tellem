@@ -1,0 +1,32 @@
+doctype html
+html(lang='en', ng-app='tellemApp')
+  head
+    include ./includes/header.jade
+  body
+    div(id='connectionError', class='modal fade')
+        div(class='modal-dialog')
+            div(class='modal-content')
+                div(class='modal-header')
+                    h4(class='modal-title')='Connection Error'
+                div(class='modal-body')
+                    p='There was an error connecting to the server. tellem will keep retrying, but if this message doesn\'t disappear please contact me at '
+                        a(href='mailto:' + contactMail)=contactMail + '.'
+
+    header(class='site-header', ng-include="'/view/header.html'", ui-sref='home')
+    section(class='main')
+        section(class='main-container')
+            section(class='side-list', ng-controller='SideListCtrl', ng-include="'/view/sidebar.html'")
+            section(class='centre-pane', ui-view)
+
+    script(type='text/javascript', src='//code.jquery.com/jquery-2.2.0.min.js')
+
+    script(type='text/javascript').
+        window._tellem = {};
+        window._tellem.bootstrap = {};
+    each data, varName in bootstrap
+        script(type='text/javascript')!='window._tellem.bootstrap.' + varName + ' = ' + JSON.stringify(data)
+
+    if env == 'dev'
+        script(type='text/javascript', src='/js/tellem.js')
+    else
+        script(type='text/javascript', src='/js/app-min.js')

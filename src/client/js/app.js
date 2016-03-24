@@ -33,12 +33,12 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 
 		$stateProvider.state('home', {
 			url: '/',
-			templateUrl: 'view/home.html'
+			templateUrl: '/view/home.html'
 		})
 
 		.state('send', {
 			url: '/send?{channel}',
-			templateUrl: 'view/sender.html',
+			templateUrl: '/view/sender.html',
 			controller: 'SendCtrl'
 		})
 
@@ -56,17 +56,12 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 
 			.state('channel.id', {
 				url: '/:channelId',
-				templateUrl: 'view/channel.html',
+				templateUrl: '/view/channel.html',
 				controller: 'ChannelCtrl'
 			})
 
 			.state('channel.404', {
 				url: '/404',
-				templateUrl: 'view/channel.404.html'
-			})
-
-		.state('bot', {
-			url: '/bot',
-			templateUrl: 'view/bot.html'
-		});
+				templateUrl: '/view/channel.404.html'
+			});
 	}]);

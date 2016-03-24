@@ -1,40 +1,24 @@
 doctype html
-html(lang='en', ng-app='tellemApp')
+html
   head
-    title='tellem'
-
-    if env == 'dev'
-        link(rel='stylesheet/less', type='text/css', href='/less/styles.less')
-    else
-        link(rel='stylesheet', type='text/css', href='/css/styles.css')
+    include ./includes/header.jade
   body
-    div(id='connectionError', class='modal fade')
-        div(class='modal-dialog')
-            div(class='modal-content')
-                div(class='modal-header')
-                    h4(class='modal-title')='Connection Error'
-                div(class='modal-body')
-                    p='There was an error connecting to the server. tellem will keep retrying, but if this message doesn\'t disappear please contact me at '
-                        a(href='mailto:' + contactMail)=contactMail + '.'
+    section.jumbotron.index-main
+      section.container-fluid
+        div.row
+          h1.big tellem
+        div.row
+          p.lead.oneline
+            | No more fiddly mailing lists. No more noisy group IMs.
+        div.row
+          p.lead.oneline
+            | Keep everyone in the know.
+        div.row
+          a.btn.btn-success.btn-lg.try-demo(href='/app', role='button') Try the Live Demo!
+        div.row
+          a.twitter-mention-button(href='https://twitter.com/intent/tweet?screen_name=use_tellem', data-size='large', data-related='use_tellem') Tweet to @use_tellem
+          script.
+            !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
+    include ./includes/ga.jade
 
-    header(class='main-header', ng-include="'view/header.html'", ui-sref='home')
-    section(class='main')
-        section(class='main-container')
-            section(class='side-list', ng-controller='SideListCtrl', ng-include="'view/sidebar.html'")
-            section(class='centre-pane', ui-view)
-
-    if env == 'dev'
-        script(type='text/javascript', src='/js/lib/less.js')
-
-    script(type='text/javascript', src='//code.jquery.com/jquery-2.2.0.min.js')
-
-    script(type='text/javascript').
-        window._tellem = {};
-        window._tellem.bootstrap = {};
-    each data, varName in bootstrap
-        script(type='text/javascript')!='window._tellem.bootstrap.' + varName + ' = ' + JSON.stringify(data)
-
-    if env == 'dev'
-        script(type='text/javascript', src='/js/tellem.js')
-    else
-        script(type='text/javascript', src='/js/app-min.js')
+ 

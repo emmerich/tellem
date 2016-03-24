@@ -54695,12 +54695,12 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 
 		$stateProvider.state('home', {
 			url: '/',
-			templateUrl: 'view/home.html'
+			templateUrl: '/view/home.html'
 		})
 
 		.state('send', {
 			url: '/send?{channel}',
-			templateUrl: 'view/sender.html',
+			templateUrl: '/view/sender.html',
 			controller: 'SendCtrl'
 		})
 
@@ -54718,19 +54718,14 @@ angular.module('tellemApp', ['ui.router', 'tellemApp.bootstrap', 'tellemApp.cont
 
 			.state('channel.id', {
 				url: '/:channelId',
-				templateUrl: 'view/channel.html',
+				templateUrl: '/view/channel.html',
 				controller: 'ChannelCtrl'
 			})
 
 			.state('channel.404', {
 				url: '/404',
-				templateUrl: 'view/channel.404.html'
-			})
-
-		.state('bot', {
-			url: '/bot',
-			templateUrl: 'view/bot.html'
-		});
+				templateUrl: '/view/channel.404.html'
+			});
 	}]);
 },{"./ack":68,"./bootstrap":70,"./bulletins":71,"./controllers":72,"./db":73,"./notifier":74,"./session":75,"./socket":76,"./sync":77,"angular":5,"angular-chosen-localytics/dist/angular-chosen.min":1,"angular-chosen-localytics/node_modules/chosen-npm/public/chosen.jquery.min":2,"angular-ui-router":3,"bootstrap":6,"html5-desktop-notifications":19,"jquery":20}],70:[function(require,module,exports){
 'use strict';

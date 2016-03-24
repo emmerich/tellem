@@ -11,6 +11,10 @@ Users.prototype.getByUsername = function(username) {
 	return this.db.findOne(this.model, { username: username });
 };
 
+Users.prototype.getByEmail = function(email) {
+	return this.db.findOne(this.model, { email: email });
+};
+
 Users.prototype.deleteAllSubscriptionsForChannel = function(channelId) {
 	var _this = this;
 
