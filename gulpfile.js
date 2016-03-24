@@ -53,7 +53,7 @@ gulp.task('client-mv-view', function() {
 });
 
 gulp.task('client-mv-css', function() {
-	return gulp.src('./src/client/less/*.png')
+	return gulp.src('./src/client/less/**/*.png')
 		.pipe(gulp.dest('./dist/server/static/css'));
 });
 
