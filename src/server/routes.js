@@ -30,7 +30,8 @@ module.exports = function(app, passport, channels) {
 
 		res.render('login', {
 			'env': env,
-			'message': error
+			'message': error,
+			'contactMail': 'steven@usetellem.com'
 		});
 	});
 
