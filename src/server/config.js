@@ -19,6 +19,7 @@ module.exports = function() {
 				devOps_id: '56f42f12fb8b9c88e568531a'
 			};
 		default:
-			throw 'Unknown environment: ' + env;
+			winston.log('error', 'Unknown environment %s.', process.env.TELLEM_ENV);
+			return null;
 	}
 };

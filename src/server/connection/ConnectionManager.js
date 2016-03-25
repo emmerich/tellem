@@ -34,7 +34,9 @@ ConnectionManager.prototype._handleCRUD = function(sender, operation, payload) {
 	var request = payload.data;
 	var db = this._getDB(request.collection);
 
-	db[operation](request, payload._ack, sender);
+	if(db) {
+		db[operation](request, payload._ack, sender);	
+	}
 };
 
 ConnectionManager.prototype._getDB = function(collection) {
@@ -44,7 +46,8 @@ ConnectionManager.prototype._getDB = function(collection) {
 		case 'channels':
 			return this.channels;
 		default:
-			throw 'Unrecognized collection: ' + collection;
+			winston.log('error', 'Unrecognized collection %s.', collection);
+			return null;
 	}
 };
 

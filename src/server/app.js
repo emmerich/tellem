@@ -90,6 +90,10 @@ app.use(session({ secret: SECRET, resave: false, saveUninitialized: false, store
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
+app.use(function(err, req, res, next) {
+  winston.log('error', err.stack);
+  next(err);
+});
 
 io.use(passportSocketIo.authorize({
   secret:      SECRET,    // the session_secret to parse the cookie

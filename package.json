@@ -21,6 +21,7 @@
     "cookie-parser": "^1.4.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "forever": "^0.15.1",
     "gulp": "^3.9.1",
     "html5-desktop-notifications": "^1.0.0",
     "jade": "^1.11.0",
